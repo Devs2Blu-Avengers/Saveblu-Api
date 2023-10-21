@@ -12,6 +12,7 @@
 	<artifactId>saveblu-api</artifactId>
 	<version>0.0.1</version>
 	<name>saveblu-api</name>
+	<packaging>war</packaging>
 	<description>Saveblu API</description>
 	<properties>
 		<java.version>17</java.version>
