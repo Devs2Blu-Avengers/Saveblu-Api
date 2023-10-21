@@ -1,5 +1,7 @@
 package br.com.savebluapi.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -20,6 +22,7 @@ public class Device {
 	private String token;
 	
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@JsonIgnoreProperties("devices")  
 	private User user;
 
 	@Column(nullable = false)

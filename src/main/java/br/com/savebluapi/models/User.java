@@ -2,6 +2,8 @@ package br.com.savebluapi.models;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import br.com.savebluapi.enums.UserType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,8 +37,8 @@ public class User {
 	@Column(nullable = false)
 	private UserType type;
 	
-	@Column(nullable = false)
-	@OneToMany(mappedBy = "device", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	@JsonIgnoreProperties("user")  
 	private List<Device> devices;
 	
 }
