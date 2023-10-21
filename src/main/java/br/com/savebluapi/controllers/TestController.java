@@ -11,7 +11,7 @@ public class TestController {
 
     @GetMapping
     public ResponseEntity<Object> helloWorld(){
-        String message = "Hello, world!";
+        String message = "Saveblu online!";
         System.out.println(message);
         return ResponseEntity.ok(message);
     }
