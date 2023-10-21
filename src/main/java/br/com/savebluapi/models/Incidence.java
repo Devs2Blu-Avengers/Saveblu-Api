@@ -25,13 +25,14 @@ public class Incidence {
     @Column(nullable = false)
     private Double longitude;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Category category;
 
     @Column(nullable = false)
     private String description;
 
-    @ManyToOne(optional = true, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private User user;
 
     @Column
