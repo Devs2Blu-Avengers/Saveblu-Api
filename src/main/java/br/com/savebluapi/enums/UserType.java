@@ -1,13 +1,23 @@
 package br.com.savebluapi.enums;
 
 public enum UserType {
-	CIDADADO ,
-	ENFERMEIRO ,
-	BOMBEIRO,
-	BRIGADISTA,
-	FISCAL_AMBIENTAL,
-	POLICIA_AMBIENTAL,
-	DEFESA_CIVIL,
-	FISCAL_SANITARIO
+	CIDADADO("Cidadão"),
+	ENFERMEIRO("Enfermeiro"),
+	BOMBEIRO("Bobeiro"),
+	BRIGADISTA("Brigadista"),
+	FISCAL_AMBIENTAL("Fiscal Ambiental"),
+	POLICIA_AMBIENTAL("Polícia Ambiental"),
+	DEFESA_CIVIL("Defesa Civil"),
+	FISCAL_SANITARIO("Fiscal Sanitário");
+
+	private String usertype = "";
+
+    UserType(String usertype) {
+        this.usertype = usertype;
+    }
+
+    public String getUserType() {
+        return  this.usertype;
+    }
 }
 
