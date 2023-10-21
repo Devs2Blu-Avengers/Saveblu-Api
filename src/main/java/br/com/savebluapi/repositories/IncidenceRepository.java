@@ -1,11 +1,8 @@
 package br.com.savebluapi.repositories;
 
-public class IncidenceRepository {
-    // TODO: escrever a classe IncidenceRepository  
+import br.com.savebluapi.models.Incidence;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-    public void create(){
-        /*
-         * Cria um novo incidente
-         */
-    }
+public interface IncidenceRepository extends JpaRepository<Incidence, Long> {
+
 }
