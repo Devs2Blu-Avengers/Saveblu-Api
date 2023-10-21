@@ -1,0 +1,13 @@
+package br.com.savebluapi.enums;
+
+public enum UserType {
+	CIDADADO ,
+	ENFERMEIRO ,
+	BOMBEIRO,
+	BRIGADISTA,
+	FISCAL_AMBIENTAL,
+	POLICIA_AMBIENTAL,
+	DEFESA_CIVIL,
+	FISCAL_SANITARIO
+}
+
