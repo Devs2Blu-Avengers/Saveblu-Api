@@ -1,6 +1,6 @@
 ## Saveblu API
 
-### Documentação SWAGGER
+### Documentação da Api com o Swagger
 
 Acesse o endereço:
 
