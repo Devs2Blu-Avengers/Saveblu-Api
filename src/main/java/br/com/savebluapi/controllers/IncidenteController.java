@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class IncidenteController {
     
     @PostMapping
-    public ResponseEntity<Object> getIncidents(){
+    public ResponseEntity<Object> getUserNearIncidents(){
         /*
          * TODO: retornar uma lista de incidentes próximos as coordenadas do usuário informado
          * 
@@ -40,7 +40,7 @@ public class IncidenteController {
 
 
     @PostMapping(value = "/byposition")
-    public ResponseEntity<Object> getNearbyIncidentsFromPosition(){
+    public ResponseEntity<Object> getNearIncidentsByPositionRadius(){
         /*
          * TODO: retornar uma lista de incidentes próximos a posição informada
          * 

@@ -1,7 +1,7 @@
 package br.com.savebluapi.enums;
 
 public enum UserType {
-	CIDADADO("Cidadão"),
+	CIDADAO("Cidadão"),
 	ENFERMEIRO("Enfermeiro"),
 	BOMBEIRO("Bobeiro"),
 	BRIGADISTA("Brigadista"),
