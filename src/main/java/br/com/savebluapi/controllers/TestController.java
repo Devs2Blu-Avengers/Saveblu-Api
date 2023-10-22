@@ -11,8 +11,7 @@ public class TestController {
 
     @GetMapping
     public ResponseEntity<Object> helloWorld(){
-        String message = "Saveblu online!";
-        System.out.println(message);
+        String message = "Saveblu online!<br><br>Acesse a documentação da Api com o Swagger: <a href='http://localhost:8080/swagger-ui/index.html' target='_blank'>clicando aqui</a>";
         return ResponseEntity.ok(message);
     }
     
