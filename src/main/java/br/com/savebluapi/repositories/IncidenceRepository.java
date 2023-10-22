@@ -17,7 +17,7 @@ public interface IncidenceRepository extends JpaRepository<Incidence, Long> {
             SELECT i FROM Incidence i WHERE 
             FUNCTION('ST_Distance_Sphere', POINT(i.latitude = :latitude, i.longitude = :longitude), POINT(?1, ?2)) <= :radiusInMeters
             """)
-    List<Incidence> findIncidentsWithinRadius(Double latitude, Double longitude, Double radiusInMeters);
+    List<Incidence> findIncidencesWithinRadius(Double latitude, Double longitude, Double radiusInMeters);
 
     // O próprio Hibernate e o Jpa fazem a query no banco baseada na latitude e longitude próxima do usuário e lista as incidências
     // próximas pra nós, massa neh, só não testei ahahahaha
@@ -25,7 +25,7 @@ public interface IncidenceRepository extends JpaRepository<Incidence, Long> {
             SELECT i FROM Incident i ORDER BY
             FUNCTION('ST_Distance_Sphere', POINT(i.latitude = :latitude, i.longitude = :longitude), POINT(?1, ?2))
             """)
-    List<Incidence> findIncidentsNearUser(Double latitude, Double longitude, Pageable pageable);
+    List<Incidence> findIncidencesNearUser(Double latitude, Double longitude, Pageable pageable);
 
 
 }

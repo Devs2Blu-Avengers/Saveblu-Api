@@ -32,7 +32,7 @@ public class Incidence {
     @Column(nullable = false)
     private String description;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private User user;
 
     @Column

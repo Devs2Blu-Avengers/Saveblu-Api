@@ -5,6 +5,7 @@ import br.com.savebluapi.enums.UserType;
 import br.com.savebluapi.models.Incidence;
 import br.com.savebluapi.models.User;
 import br.com.savebluapi.models.dtos.IncidenceDTO;
+import br.com.savebluapi.models.dtos.UserDTO;
 import br.com.savebluapi.repositories.DeviceRepository;
 import br.com.savebluapi.repositories.IncidenceRepository;
 import br.com.savebluapi.repositories.UserRepository;
@@ -35,51 +36,54 @@ public class IncidenceService {
     @Autowired
     ModelMapper mapper;
 
-//    public Long createNewIncidence(IncidenceDTO incidenceDTO, UserDTO userDTO) throws Exception {
-//        /*
-//         * TODO: deve gravar um novo incidente
-//         *
-//         *
-//         * Deve receber um objeto com o usuário e o incidente
-//         *
-//         * Recebe:
-//         * {
-//         *  user: ObjectJSON,
-//         *  incidente: ObjectJson
-//         * }
-//         *
-//         * Regras para a service:
-//         * Se o campo Incidente.getUrgent() == true quer dizer que é um S.O.S.
-//         * caso contrário é apenas uma denúncia
-//         *
-//         * User->Devices pode ser nulo caso o usuário for anônimo [Hazel]
-//         *
-//         * Se o usuário não existir cria um novo usuário no banco, a chave única será o endereço de email
-//         */
-//        Incidence created = null;
-//        try {
-//            if (incidenceDTO.getUrgent()) {
-//                // SOS
-//
-//            } else {
-//                // Denúncia
-//            }
-//
-//            if (incidenceDTO.getUser() != null) {
-//                // Cria um usuário se ele não existir
-//                if (userService.findByEmail(incidenceDTO.getUser().getEmail()) == null) {
-//                    userService.save(incidenceDTO.getUser());
-//                    if (incidenceDTO.getUser().getDevices() != null) {
-//                        created = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
-//                    }
-//                }
-//            }
-//        } catch (Exception e) {
-//            throw new Exception("Erro ao criar um Incidente");
-//        }
-//
-//        return created.getId();
-//    }
+    public Long createNewIncidence(IncidenceDTO incidenceDTO) throws Exception {
+        /*
+         * TODO: deve gravar um novo incidente
+         *
+         *
+         * Deve receber um objeto com o usuário e o incidente
+         *
+         * Recebe:
+         * {
+         *  user: ObjectJSON,
+         *  incidente: ObjectJson
+         * }
+         *
+         * Regras para a service:
+         * Se o campo Incidente.getUrgent() == true quer dizer que é um S.O.S.
+         * caso contrário é apenas uma denúncia
+         *
+         * User->Devices pode ser nulo caso o usuário for anônimo [Hazel]
+         *
+         * Se o usuário não existir cria um novo usuário no banco, a chave única será o endereço de email
+         */
+        Incidence created = null;
+
+        if (incidenceDTO.getUrgent()) {
+            // SOS
+
+        } else {
+            // Denúncia
+        }
+
+        try {
+
+            if (incidenceDTO.getUser() != null) {
+                // Cria um usuário se ele não existir
+                if (userService.findUserByEmail(incidenceDTO.getUser().getEmail()) == null
+                        && incidenceDTO.getUser().getDevices() != null) {
+                    created = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
+                }
+            } else {
+                // Se o usuário for nulo
+                created = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
+            }
+        } catch (Exception e) {
+            throw new Exception("Erro ao criar um Incidente");
+        }
+
+        return created.getId();
+    }
 
     public List<IncidenceDTO> getIncidencesByCategory(Category category, User user) throws  Exception {
         /**
@@ -142,7 +146,7 @@ public class IncidenceService {
 
         if (user.getType() != UserType.CIDADAO) {
             incidenceDTOListiInRadius = incidenceRepository
-                    .findIncidentsWithinRadius(incidenceDTO.getLatitude(), incidenceDTO.getLongitude(), radiusInMeters).stream()
+                    .findIncidencesWithinRadius(incidenceDTO.getLatitude(), incidenceDTO.getLongitude(), radiusInMeters).stream()
                     .filter(incidence -> incidence.getCategory() == category)
                     .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
         }
@@ -182,7 +186,7 @@ public class IncidenceService {
 
         if (user.getType() != UserType.CIDADAO) {
             nearIncidenceDTOList = incidenceRepository
-            .findIncidentsNearUser(incidenceDTO.getLatitude(), incidenceDTO.getLongitude(), pageable).stream()
+            .findIncidencesNearUser(incidenceDTO.getLatitude(), incidenceDTO.getLongitude(), pageable).stream()
                     .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
         }
 
