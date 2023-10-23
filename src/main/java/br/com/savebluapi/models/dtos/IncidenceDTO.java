@@ -2,10 +2,12 @@ package br.com.savebluapi.models.dtos;
 
 import br.com.savebluapi.enums.Category;
 import br.com.savebluapi.models.User;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
 
+@Data
 public class IncidenceDTO implements Serializable {
 
     private static final long  serialVersionUID = 42L;

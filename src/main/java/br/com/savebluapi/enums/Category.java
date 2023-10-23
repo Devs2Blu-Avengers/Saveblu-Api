@@ -4,13 +4,13 @@ public enum Category {
     INCENDIO("Incêndio"),
     ENCHENTE("Enchente"),
     ALAGAMENTO("Alagamento"),
-    RISCOELETRICO("Risco Elétrico"),
+    RISCO_ELETRICO("Risco Elétrico"),
     AFOGAMENTO("Afogamento"),
     DESLIZAMENTO("Delizamento"),
     OUTROS("Outros"),
-    POLUICAOAMBIENTAL("Poliação Ambiental"),
-    TRAFICOANIMAIS("Tráfico de Animais"),
-    DESMATAMENTOILEGAL("Desmatamento"),
+    POLUICAO_AMBIENTAL("Poluição Ambiental"),
+    TRAFICO_ANIMAIS("Tráfico de Animais"),
+    DESMATAMENTO_ILEGAL("Desmatamento Ilegal"),
     CONTAMINACAO("Contaminação");
 
     private String category = "";

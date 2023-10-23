@@ -5,7 +5,7 @@ create table users (
     email varchar(255) not null unique,
     name varchar(255) not null,
     telephone varchar(255) not null unique,
-    type varchar(255) not null check (type in ('CIDADADO','ENFERMEIRO','BOMBEIRO','BRIGADISTA','FISCAL_AMBIENTAL','POLICIA_AMBIENTAL','DEFESA_CIVIL','FISCAL_SANITARIO')),
+    type varchar(255) not null check (type in ('CIDADAO','ENFERMEIRO','BOMBEIRO','BRIGADISTA','FISCAL_AMBIENTAL','POLICIA_AMBIENTAL','DEFESA_CIVIL','FISCAL_SANITARIO')),
     primary key (id)
 );
 
@@ -24,7 +24,7 @@ create table incidence (
     date date not null,
     latitude float(53) not null,
     longitude float(53) not null,
-    category varchar(255) not null check (category in ('INCENDIO','ENCHENTE','ALAGAMENTO','RISCOELETRICO','AFOGAMENTO','DESLIZAMENTO','OUTROS','POLUICAOAMBIENTAL','TRAFICOANIMAIS','DESMATAMENTOILEGAL','CONTAMINACAO')),
+    category varchar(255) not null check (category in ('INCENDIO','ENCHENTE','ALAGAMENTO','RISCO_ELETRICO','AFOGAMENTO','DESLIZAMENTO','OUTROS','POLUICAO_AMBIENTAL','TRAFICO_ANIMAIS','DESMATAMENTO_ILEGAL','CONTAMINACAO')),
     description varchar(1000) not null,
     user_id bigint not null,
     urgent boolean,
