@@ -2,6 +2,7 @@ package br.com.savebluapi.services;
 
 import br.com.savebluapi.enums.Category;
 import br.com.savebluapi.enums.UserType;
+import br.com.savebluapi.models.Device;
 import br.com.savebluapi.models.Incidence;
 import br.com.savebluapi.models.User;
 import br.com.savebluapi.models.dtos.IncidenceDTO;
@@ -10,6 +11,7 @@ import br.com.savebluapi.repositories.DeviceRepository;
 import br.com.savebluapi.repositories.IncidenceRepository;
 import br.com.savebluapi.repositories.UserRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +33,7 @@ public class IncidenceService {
     UserService userService;
 
     @Autowired
-    DeviceService deviceService;
+    DeviceRepository deviceRepository;
 
     @Autowired
     ModelMapper mapper;
@@ -57,7 +59,7 @@ public class IncidenceService {
          *
          * Se o usuário não existir cria um novo usuário no banco, a chave única será o endereço de email
          */
-        Incidence created = null;
+        Incidence incidenceCreated = null;
 
         if (incidenceDTO.getUrgent()) {
             // SOS
@@ -68,21 +70,26 @@ public class IncidenceService {
 
         try {
 
-            if (incidenceDTO.getUser() != null) {
-                // Cria um usuário se ele não existir
-                if (userService.findUserByEmail(incidenceDTO.getUser().getEmail()) == null
-                        && incidenceDTO.getUser().getDevices() != null) {
-                    created = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
-                }
-            } else {
+            if (incidenceDTO.getUser() == null) {
                 // Se o usuário for nulo
-                created = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
+                incidenceCreated = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
+
+            } else {
+                // Cria um usuário se ele não existir
+                User userSearched = userService.findUserByEmail(incidenceDTO.getUser().getEmail());
+
             }
-        } catch (Exception e) {
+        } catch (EntityNotFoundException e) {
+            if (incidenceDTO.getUser().getDevices() != null) {
+
+                incidenceCreated = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
+            }
+        }
+        catch (Exception e) {
             throw new Exception("Erro ao criar um Incidente");
         }
 
-        return created.getId();
+        return incidenceCreated.getId();
     }
 
     public List<IncidenceDTO> getIncidencesByCategory(Category category, User user) throws  Exception {

@@ -30,7 +30,7 @@ public class User {
 	@Column(nullable = false)
 	private UserType type;
 	
-	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
 	@JsonIgnoreProperties("user")
 	private List<Device> devices;
 }

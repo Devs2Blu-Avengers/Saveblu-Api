@@ -1,11 +1,14 @@
 package br.com.savebluapi.controllers;
 
+import br.com.savebluapi.enums.Category;
+import br.com.savebluapi.models.User;
 import br.com.savebluapi.models.dtos.IncidenceDTO;
 import br.com.savebluapi.models.dtos.UserDTO;
 import br.com.savebluapi.services.IncidenceService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -70,28 +73,40 @@ public class IncidenteController {
 //        return null;
 //    }
 //
-//    @GetMapping(value = "/incidence/bycategory/{category}")
-//    public void getIncidencesByCategory(){
-//        /**
-//         * TODO: retorna todos os incidentes de uma lista de categorias informadas
-//         *
-//         * A regra de negócio de quem poderá consumir esse endpoint não foi definida
-//         *
-//         * Não retornar todas as informações para usuário do tipo CIDADAO
-//         *
-//         * recebe um usuário e uma lista categorias
-//         * {
-//         *  user: ObjectJSON,
-//         *  categorylist: ArrayInteger
-//         * }
-//         * retorna uma lista de incidentes de acordo com a categoria informada
-//         * {
-//         *  incidente: ObjectJson
-//         * }
-//         */
-//    }
+
+    @Operation(description = "Retorna todos os incidentes de uma lista de categorias informadas", method = "GET")// customizando UI do Swagger
+    @Transactional
+    @GetMapping(value = "/bycategory/{category}")
+    public ResponseEntity<Object> getIncidencesByCategory(@PathVariable Category category, @RequestBody User user) throws  Exception {
+        /**
+         * TODO: retorna todos os incidentes de uma lista de categorias informadas
+         *
+         * A regra de negócio de quem poderá consumir esse endpoint não foi definida
+         *
+         * Não retornar todas as informações para usuário do tipo CIDADAO
+         *
+         * recebe um usuário e uma lista categorias
+         * {
+         *  user: ObjectJSON,
+         *  categorylist: ArrayInteger
+         * }
+         * retorna uma lista de incidentes de acordo com a categoria informada
+         * {
+         *  incidente: ObjectJson
+         * }
+         */
+        try {
+            return ResponseEntity.ok(incidenceService.getIncidencesByCategory(category, user));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+
+
+    }
 
     @Operation(description = "Cadastra uma Incidência", method = "POST")// customizando UI do Swagger
+    @Transactional
     @PostMapping(value = "/create")
     public ResponseEntity<Object> createNewIncidence(@RequestBody IncidenceDTO incidenceDTO){
         /*
