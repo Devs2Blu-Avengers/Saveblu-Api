@@ -11,24 +11,24 @@ INSERT INTO core.users (email, name, telephone, type) VALUES
 
 -- Dispositivos
 INSERT INTO core.device (token, user_id, last_latitude, last_longitude, number) VALUES
-('token1', 1, 11.111, 22.222, 'Device 1'),
-('token2', 2, 33.333, 44.444, 'Device 2'),
-('token3', 3, 55.555, 66.666, 'Device 3'),
-('token4', 4, 77.777, 88.888, 'Device 4'),
-('token5', 5, 99.999, 101.010, 'Device 5'),
-('token6', 6, 111.111, 121.212, 'Device 6'),
-('token7', 7, 131.313, 141.414, 'Device 7'),
-('token8', 8, 151.515, 161.616, 'Device 8');
+('token1', 1, -26.914543, -49.067765, 'Device 1'),
+('token2', 2, -26.915123, -49.067891, 'Device 2'),
+('token3', 3, -26.914987, -49.067432, 'Device 3'),
+('token4', 4, -26.915345, -49.067557, 'Device 4'),
+('token5', 5, -26.914324, -49.067932, 'Device 5'),
+('token6', 6, -26.915432, -49.067567, 'Device 6'),
+('token7', 7, -26.914765, -49.067123, 'Device 7'),
+('token8', 8, -26.914987, -49.067890, 'Device 8');
 
 -- Incidentes
 INSERT INTO core.incidence (date, latitude, longitude, category, description, user_id, urgent, status, valid) VALUES
-('2023-10-01', 40.123, -74.456, 'INCENDIO', 'Incêndio na rua principal', 1, true, true, true),
-('2023-10-02', 35.678, -78.901, 'ENCHENTE', 'Enchente na avenida central', 2, true, true, true),
-('2023-10-03', 38.246, -82.345, 'ALAGAMENTO', 'Alagamento no bairro', 3, false, true, true),
-('2023-10-04', 42.345, -76.789, 'RISCO_ELETRICO', 'Risco elétrico na escola', 4, true, true, true),
-('2023-10-05', 41.111, -71.111, 'AFOGAMENTO', 'Afogamento na praia', 5, true, true, true),
-('2023-10-06', 45.555, -80.000, 'DESLIZAMENTO', 'Deslizamento de terra', 6, true, true, true),
-('2023-10-07', 39.999, -75.555, 'OUTROS', 'Outra ocorrência', 7, false, true, true),
-('2023-10-08', 36.667, -72.222, 'POLUICAO_AMBIENTAL', 'Poluição no rio', 8, false, true, true);
+('2023-10-01', -26.914543, -49.067765, 'INCENDIO', 'Incêndio na rua principal', 1, true, true, true),
+('2023-10-02', -26.915123, -49.067891, 'ENCHENTE', 'Enchente na avenida central', 2, true, true, true),
+('2023-10-03', -26.914987, -49.067432, 'ALAGAMENTO', 'Alagamento no bairro', 3, false, true, true),
+('2023-10-04', -26.915345, -49.067557, 'RISCO_ELETRICO', 'Risco elétrico na escola', 4, true, true, true),
+('2023-10-05', -26.914324, -49.067932, 'AFOGAMENTO', 'Afogamento na praia', 5, true, true, true),
+('2023-10-06', -26.915432, -49.067567, 'DESLIZAMENTO', 'Deslizamento de terra', 6, true, true, true),
+('2023-10-07', -26.914765, -49.067123, 'OUTROS', 'Outra ocorrência', 7, false, true, true),
+('2023-10-08', -26.914987, -49.067890, 'POLUICAO_AMBIENTAL', 'Poluição no rio', 8, false, true, true);
 
 
