@@ -2,12 +2,16 @@
 package br.com.savebluapi.services;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import br.com.savebluapi.models.Device;
 import br.com.savebluapi.models.User;
+import br.com.savebluapi.models.dtos.UserDTO;
 import br.com.savebluapi.repositories.UserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -18,16 +22,29 @@ public class UserService {
 	@Autowired
 	private UserRepository userRepository;
 
-	public User findById(int userId) {
-		return userRepository.findById(userId)
-				.orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
+	@Autowired
+    ModelMapper mapper;
+
+	public UserDTO findById(Long userId) throws Exception{
+		Optional<User> optional = userRepository.findById(userId);
+		if (optional.isPresent()) {
+            return mapper.map(optional.get(), UserDTO.class);
+        } else {
+            throw new Exception("Não encontrado");
+        }
+	}
+
+	public List<UserDTO> listAll() {
+		return userRepository.findAll().stream()
+            .map(user -> mapper.map(user, UserDTO.class))
+            .collect(Collectors.toList());
 	}
 
 	public List<User> findAll() {
 		return userRepository.findAll();
 	}
 
-	public List<Device> findAllDevicesForUserId(int userId) {
+	public List<Device> findAllDevicesForUserId(Long userId) {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
 		return user.getDevices();
@@ -56,7 +73,7 @@ public class UserService {
         }
     }
 
-	public User updateUser(int userId, User updatedUserDate) {
+	public User updateUser(Long userId, User updatedUserDate) {
 		if (updatedUserDate == null) {
 			throw new IllegalArgumentException("Dados de usuário atualizados inválidos");
 		}
@@ -115,7 +132,7 @@ public class UserService {
 		return phoneNumber.matches(phoneRegex);
 	}
 
-	public void deleteUserById(int userId) {
+	public void deleteUserById(Long userId) {
 		User existingUser = userRepository.findById(userId)
 				.orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
 		userRepository.delete(existingUser);
