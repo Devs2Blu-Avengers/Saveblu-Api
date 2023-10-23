@@ -10,7 +10,7 @@ import br.com.savebluapi.models.Device;
 import br.com.savebluapi.models.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface UserRepository extends JpaRepository<User, Long> {
     User findByEmail(String email);
     User findByTelephone(String telephone);
     boolean existsByEmail(String email);
