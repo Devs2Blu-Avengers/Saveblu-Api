@@ -15,7 +15,7 @@ public class Device {
 	@Column(nullable = false)
 	private String token;
 	
-	@ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
 	@JoinColumn(name = "user_id")
 	@JsonIgnoreProperties("devices")  
 	private User user;

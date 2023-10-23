@@ -75,15 +75,16 @@ public class IncidenceService {
                 incidenceCreated = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
 
             } else {
-                // Cria um usuário se ele não existir
                 User userSearched = userService.findUserByEmail(incidenceDTO.getUser().getEmail());
+                if (userSearched != null) {
+                    incidenceCreated = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
+                }
+
 
             }
         } catch (EntityNotFoundException e) {
-            if (incidenceDTO.getUser().getDevices() != null) {
-
-                incidenceCreated = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
-            }
+            // Cria um usuário se ele não existir
+            incidenceCreated = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
         }
         catch (Exception e) {
             throw new Exception("Erro ao criar um Incidente");
@@ -128,7 +129,7 @@ public class IncidenceService {
         return incidenceDTOList;
     }
 
-    public List<IncidenceDTO> getNearIncidentsByPositionRadius(User user, IncidenceDTO incidenceDTO, Category category, Double radiusInMeters){
+    public List<IncidenceDTO> getNearIncidentsByPositionRadius(User user,Category category,Double latitude, Double longitude, Double radiusInMeters){
         /*
          * TODO: retornar uma lista de incidentes próximos a posição informada
          *
@@ -149,14 +150,18 @@ public class IncidenceService {
          * ]
          *
          */
-        List<IncidenceDTO> incidenceDTOListiInRadius = new ArrayList<>();
+
+        // Carregar do banco as incidências
+        List<IncidenceDTO> incidenceDTOList = new ArrayList<>();
 
         if (user.getType() != UserType.CIDADAO) {
-            incidenceDTOListiInRadius = incidenceRepository
-                    .findIncidencesWithinRadius(incidenceDTO.getLatitude(), incidenceDTO.getLongitude(), radiusInMeters).stream()
-                    .filter(incidence -> incidence.getCategory() == category)
+            incidenceDTOList = incidenceRepository
+                    .findAll().stream()
                     .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
         }
+
+        // Lista para armazenar os incidentes dentro do raio
+        List<IncidenceDTO> incidenceDTOListiInRadius = findIncidentsInRadius(latitude, longitude, incidenceDTOList, radiusInMeters);
 
         return incidenceDTOListiInRadius;
     }
@@ -199,6 +204,57 @@ public class IncidenceService {
 
 
         return nearIncidenceDTOList;
+    }
+
+    // Função para calcular a distância entre dois pontos usando a fórmula de Haversine
+    public static double haversine(double userLat, double userLon, double incidentLat, double incidentLon) {
+        final int R = 6371; // Raio médio da Terra em quilômetros
+        double lat1 = Math.toRadians(userLat);
+        double lon1 = Math.toRadians(userLon);
+        double lat2 = Math.toRadians(incidentLat);
+        double lon2 = Math.toRadians(incidentLon);
+
+        double dLat = lat2 - lat1;
+        double dLon = lon2 - lon1;
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1) * Math.cos(lat2) *
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c * 1000; // Distância em metros
+    }
+
+    // Função encontra incidentes num dado raio
+    public static List<IncidenceDTO> findIncidentsInRadius(double userLatitude, double userLongitude, List<IncidenceDTO> incidenceDTOList, double radiusInMeters) {
+        List<IncidenceDTO> nearbyIncidencesDTO = new ArrayList<>();
+
+        final double EARTH_RADIUS = 6371000; // Raio da Terra em metros
+
+        for (IncidenceDTO incidence : incidenceDTOList) {
+            double lat1 = Math.toRadians(userLatitude);
+            double lon1 = Math.toRadians(userLongitude);
+            double lat2 = Math.toRadians(incidence.getLatitude());
+            double lon2 = Math.toRadians(incidence.getLongitude());
+
+            // Calcula a diferença de latitude e longitude
+            double dLat = lat2 - lat1;
+            double dLon = lon2 - lon1;
+
+            // Fórmula de Haversine para calcular a distância
+            double a = Math.pow(Math.sin(dLat / 2), 2) +
+                    Math.cos(lat1) * Math.cos(lat2) *
+                            Math.pow(Math.sin(dLon / 2), 2);
+            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            double distance = EARTH_RADIUS * c;
+
+            if (distance <= radiusInMeters) {
+                nearbyIncidencesDTO.add(incidence);
+            }
+        }
+
+        return nearbyIncidencesDTO;
     }
     
 }

@@ -45,37 +45,41 @@ public class IncidenteController {
 //
 //        return null;
 //    }
-//
-//
-//    @PostMapping(value = "/byposition")
-//    public ResponseEntity<Object> getNearIncidentsByPositionRadius(){
-//        /*
-//         * TODO: retornar uma lista de incidentes próximos a posição informada
-//         *
-//         * A regra de negócio que define quais incidentes são exibidos por tipo de usuário não foi definida
-//         *
-//         * RECEBE:
-//         * {
-//         *      user: ObjectJSON,           (opcional) Se não for informado é um usuário anônimo/cidadão
-//         *      position: ObjectJSON,       (obrigatória) Para limitar a um raio específico da posição do usuário (110 ? 200 ? 330 ?)
-//         *      categories: Array<int>      (opcional) Se passar a categoria filtra por categoria
-//         * }
-//         *
-//         * RETORNA:
-//         * [
-//         *      {ObjectJson<incidence1>},
-//         *      {ObjectJson<incidence2>},
-//         *      {ObjectJson<incidence3>}
-//         * ]
-//         *
-//         */
-//
-//        return null;
-//    }
-//
+
+    @Operation(description = "Retornar uma lista de incidentes próximos a posição informada", method = "GET")// customizando UI do Swagger
+    @GetMapping(value = "/byposition")
+    public ResponseEntity<Object> getNearIncidentsByPositionRadius(@RequestBody User user, @RequestParam Category category
+            , @RequestParam Double latitude, @RequestParam Double longitude, @RequestParam Double radiusInMeters){
+        /*
+         * TODO: retornar uma lista de incidentes próximos a posição informada
+         *
+         * A regra de negócio que define quais incidentes são exibidos por tipo de usuário não foi definida
+         *
+         * RECEBE:
+         * {
+         *      user: ObjectJSON,           (opcional) Se não for informado é um usuário anônimo/cidadão
+         *      position: ObjectJSON,       (obrigatória) Para limitar a um raio específico da posição do usuário (110 ? 200 ? 330 ?)
+         *      categories: Array<int>      (opcional) Se passar a categoria filtra por categoria
+         * }
+         *
+         * RETORNA:
+         * [
+         *      {ObjectJson<incidence1>},
+         *      {ObjectJson<incidence2>},
+         *      {ObjectJson<incidence3>}
+         * ]
+         *
+         */
+        try {
+            return ResponseEntity.ok(incidenceService.getNearIncidentsByPositionRadius(user, category, latitude,
+                    longitude, radiusInMeters));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
     @Operation(description = "Retorna todos os incidentes de uma lista de categorias informadas", method = "GET")// customizando UI do Swagger
-    @Transactional
     @GetMapping(value = "/bycategory/{category}")
     public ResponseEntity<Object> getIncidencesByCategory(@PathVariable Category category, @RequestBody User user) throws  Exception {
         /**
@@ -100,13 +104,9 @@ public class IncidenteController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-
-
     }
 
     @Operation(description = "Cadastra uma Incidência", method = "POST")// customizando UI do Swagger
-    @Transactional
     @PostMapping(value = "/create")
     public ResponseEntity<Object> createNewIncidence(@RequestBody IncidenceDTO incidenceDTO){
         /*
