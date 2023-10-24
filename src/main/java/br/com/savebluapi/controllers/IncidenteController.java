@@ -19,34 +19,43 @@ public class IncidenteController {
 
     @Autowired
     IncidenceService incidenceService;
-    
-//    @PostMapping
-//    public ResponseEntity<Object> getUserNearIncidents(){
-//        /*
-//         * TODO: retornar uma lista de incidentes próximos as coordenadas do usuário informado
-//         *
-//         *
-//         * RECEBE:
-//         * {
-//         *      user: ObjectJSON,           (opcional) Se não for informado é um usuário anônimo/cidadão
-//         *      position: ObjectJSON,       (obrigatória) Para restringir a uma localização específica
-//         *      categories: Array<int>      (opcional) Se passar a categoria filtra por categoria
-//         * }
-//         *
-//         * RETORNA:
-//         * [
-//         *      {ObjectJson1<incidence>},
-//         *      {ObjectJson2<incidence>},
-//         *      {ObjectJson3<incidence>}
-//         * ]
-//         *
-//         * A regra de negócio que define quais incidentes são exibidos por tipo de usuário não foi definida
-//         *
-//         * Não retornar todas as informações para usuário do tipo CIDADAO
-//         */
-//
-//        return null;
-//    }
+
+    @Operation(description = "Retornar uma lista de incidentes próximos a posição do Usuário", method = "GET")// customizando UI do Swagger
+    @GetMapping
+    public ResponseEntity<Object> getUserNearIncidents(@RequestBody User user, @RequestParam(required = false) Category category) throws Exception {
+        /*
+         * TODO: retornar uma lista de incidentes próximos as coordenadas do usuário informado
+         *
+         *
+         * RECEBE:
+         * {
+         *      user: ObjectJSON,           (obrigatória) Pois irá pegar as coordenadas do device do usuário
+         *      categories: Array<int>      (opcional) Se passar a categoria filtra por categoria
+         * }
+         *
+         * RETORNA:
+         * [
+         *      {ObjectJson1<incidence>},
+         *      {ObjectJson2<incidence>},
+         *      {ObjectJson3<incidence>}
+         * ]
+         *
+         * A regra de negócio que define quais incidentes são exibidos por tipo de usuário não foi definida
+         *
+         * Não retornar todas as informações para usuário do tipo CIDADAO
+         */
+
+        // Verificar se o Usuário tem um device cadastrado
+        if (user.getDevices() == null) {
+            throw new Exception("Usuário sem um device cadastrado!");
+        }
+
+        try {
+            return ResponseEntity.ok(incidenceService.getUserNearIncidents(user, category));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 
     @Operation(description = "Retornar uma lista de incidentes próximos a posição informada", method = "GET")// customizando UI do Swagger
     @GetMapping(value = "/byposition")
