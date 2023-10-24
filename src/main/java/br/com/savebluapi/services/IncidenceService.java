@@ -222,6 +222,8 @@ public class IncidenceService {
          *
          * Não retornar todas as informações para usuário do tipo CIDADAO
          */
+
+
         // Carregar do banco as incidências
         List<IncidenceDTO> incidenceDTOList = incidenceRepository.findAll().stream()
                 .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
