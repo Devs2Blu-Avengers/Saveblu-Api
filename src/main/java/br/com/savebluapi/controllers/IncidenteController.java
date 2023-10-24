@@ -3,16 +3,20 @@ package br.com.savebluapi.controllers;
 import br.com.savebluapi.enums.Category;
 import br.com.savebluapi.models.User;
 import br.com.savebluapi.models.dtos.IncidenceDTO;
-import br.com.savebluapi.models.dtos.UserDTO;
 import br.com.savebluapi.services.IncidenceService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.servers.Server;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+
+@Tag(name = "Incidência", description = "Endpoints relacionados a Incidência") // customizando UI do Swagger
+@Server(url = "http://localhost:8080", description = "Servidor local de desenvolvimento")
+@Server(url = "https://52.23.70.87:8080/", description = "Servidor de produção")
 @RestController
 @RequestMapping(value = "/incidence")
 public class IncidenteController {
