@@ -163,6 +163,13 @@ public class IncidenceService {
         // Lista para armazenar os incidentes dentro do raio
         List<IncidenceDTO> incidenceDTOListiInRadius = findIncidentsInRadius(latitude, longitude, incidenceDTOList, radiusInMeters);
 
+        for (IncidenceDTO incidenteDTO : incidenceDTOListiInRadius) {
+            System.out.print(incidenteDTO.getLatitude().toString()+ ",");
+            System.out.print(incidenteDTO.getLongitude().toString()+ ",");
+            System.out.print(incidenteDTO.getCategory().toString()+ ",");
+            System.out.println("#FF5733");
+        }
+
         return incidenceDTOListiInRadius;
     }
 
