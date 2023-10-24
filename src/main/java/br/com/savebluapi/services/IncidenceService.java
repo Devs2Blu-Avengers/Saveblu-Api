@@ -129,7 +129,7 @@ public class IncidenceService {
         return incidenceDTOList;
     }
 
-    public List<IncidenceDTO> getNearIncidentsByPositionRadius(User user,Category category,Double latitude, Double longitude, Double radiusInMeters){
+    public List<IncidenceDTO> getNearIncidentsByPositionRadius(User user,Category category,Double latitude, Double longitude, Double radiusInMeters) throws Exception {
         /*
          * TODO: retornar uma lista de incidentes próximos a posição informada
          *
@@ -152,16 +152,48 @@ public class IncidenceService {
          */
 
         // Carregar do banco as incidências
-        List<IncidenceDTO> incidenceDTOList = new ArrayList<>();
+        List<IncidenceDTO> incidenceDTOList = incidenceRepository.findAll().stream()
+                .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+        // Incidentes que serão filtrados
+        List<IncidenceDTO> incidenceDTOListiInRadius= null;
 
-        if (user.getType() != UserType.CIDADAO) {
-            incidenceDTOList = incidenceRepository
-                    .findAll().stream()
-                    .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
-        }
+            // Se for um usuário especial
+            if (user != null && user.getType() != UserType.CIDADAO) {
+                // Lista por categoria
+                if (category != null) {
+                    incidenceDTOList = incidenceDTOList.stream()
+                            .filter(incidence -> incidence.getCategory() == category)
+                            .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                } else {
+                    // Lista todos
+                    incidenceDTOList = incidenceDTOList.stream()
+                            .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                }
+            } else {
+                // Se for um cidadão
+                if (category != null) {
+                    // categorias permitidas para o cidadão
+                    if (category == Category.ENCHENTE ||
+                            category == Category.ALAGAMENTO ||
+                            category == Category.DESLIZAMENTO
+                    )
+                        incidenceDTOList = incidenceDTOList.stream()
+                                .filter(incidence -> incidence.getCategory() == category)
+                                .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                } else {
+                    // lista todas as categorias permitidas para o cidadão
+                    incidenceDTOList = incidenceDTOList.stream()
+                            .filter(
+                                    incidence -> incidence.getCategory() == Category.ENCHENTE ||
+                                            incidence.getCategory() == Category.ALAGAMENTO ||
+                                            incidence.getCategory() == Category.DESLIZAMENTO
+                            )
+                            .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                }
+            }
 
-        // Lista para armazenar os incidentes dentro do raio
-        List<IncidenceDTO> incidenceDTOListiInRadius = findIncidentsInRadius(latitude, longitude, incidenceDTOList, radiusInMeters);
+            // Lista para armazenar os incidentes dentro do raio
+            incidenceDTOListiInRadius = findIncidentsInRadius(latitude, longitude, incidenceDTOList, radiusInMeters);
 
         return incidenceDTOListiInRadius;
     }
@@ -197,9 +229,7 @@ public class IncidenceService {
         List<IncidenceDTO> nearIncidenceDTOList = new ArrayList<>();
 
         if (user.getType() != UserType.CIDADAO) {
-            nearIncidenceDTOList = incidenceRepository
-            .findIncidencesNearUser(incidenceDTO.getLatitude(), incidenceDTO.getLongitude(), pageable).stream()
-                    .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+
         }
 
 

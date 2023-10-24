@@ -6,7 +6,9 @@ import br.com.savebluapi.models.dtos.IncidenceDTO;
 import br.com.savebluapi.models.dtos.UserDTO;
 import br.com.savebluapi.services.IncidenceService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -48,8 +50,8 @@ public class IncidenteController {
 
     @Operation(description = "Retornar uma lista de incidentes próximos a posição informada", method = "GET")// customizando UI do Swagger
     @GetMapping(value = "/byposition")
-    public ResponseEntity<Object> getNearIncidentsByPositionRadius(@RequestBody User user, @RequestParam Category category
-            , @RequestParam Double latitude, @RequestParam Double longitude, @RequestParam Double radiusInMeters){
+    public ResponseEntity<Object> getNearIncidentsByPositionRadius(@RequestBody @Nullable User user, @RequestParam @Nullable Category category
+            , @RequestParam(required = false) Double latitude, @RequestParam(required = false) Double longitude, @RequestParam(required = false) Double radiusInMeters) throws  Exception {
         /*
          * TODO: retornar uma lista de incidentes próximos a posição informada
          *
@@ -70,11 +72,16 @@ public class IncidenteController {
          * ]
          *
          */
+        if (latitude == null || longitude == null || radiusInMeters == null) {
+            throw  new Exception("Coordenadas(latitude e longitude) e raio não podem ser nulos!!");
+        }
+
+
         try {
             return ResponseEntity.ok(incidenceService.getNearIncidentsByPositionRadius(user, category, latitude,
                     longitude, radiusInMeters));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -135,5 +142,11 @@ public class IncidenteController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    // Mensagens de Exceções personalizadas
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleCustomException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }
