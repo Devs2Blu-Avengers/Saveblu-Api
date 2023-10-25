@@ -47,8 +47,8 @@ public class IncidenceService {
                 throw new Exception("Informe o id do usuário existente");
         }
 
-        // Define o próximo ticket number
-        incidenceDTO.setTicketNumber(getNextTicketNumber());
+        // Define o próximo ticket 
+        incidenceDTO.setTicket(getNextTicket());
         System.out.println(incidenceDTO.toString());
 
         try {
@@ -62,29 +62,29 @@ public class IncidenceService {
         return incidenceCreated.getId();
     }
 
-    public String getNextTicketNumber(){
-        String nextTicketNumber = null;
+    public String getNextTicket(){
+        String nextTicket = null;
 
-        String maxTicketNumber = incidenceRepository.findMaxTicketNumber();
+        String maxTicket = incidenceRepository.findMaxTicket();
 
         // Obtém o ano atual, mês e dia
         String anoAtual = LocalDate.now().format(DateTimeFormatter.ofPattern("yy"));
         String mesAtual = LocalDate.now().format(DateTimeFormatter.ofPattern("MM"));
         String diaAtual = LocalDate.now().format(DateTimeFormatter.ofPattern("dd"));
 
-        if (maxTicketNumber != null && maxTicketNumber.startsWith(anoAtual)) {
-            // Se o ano atual é o mesmo do último ticket_number, incrementa o número
-            int numeroAtual = Integer.parseInt(maxTicketNumber.substring(6)); // Removendo os primeiros 6 caracteres
+        if (maxTicket != null && maxTicket.startsWith(anoAtual)) {
+            // Se o ano atual é o mesmo do último ticket, incrementa o número
+            int numeroAtual = Integer.parseInt(maxTicket.substring(6)); // Removendo os primeiros 6 caracteres
             int proximoNumero = numeroAtual + 1;
             String proximoNumeroStr = String.valueOf(proximoNumero).length() > 5 ? String.valueOf(proximoNumero) : String.format("%04d", proximoNumero); // Garante que o próximo número tenha 4 dígitos ou mais digitos
-            nextTicketNumber = anoAtual + mesAtual + diaAtual + proximoNumeroStr;
+            nextTicket = anoAtual + mesAtual + diaAtual + proximoNumeroStr;
         } else {
             // Caso contrário, começa com o primeiro número do ano atual
-            nextTicketNumber = anoAtual + mesAtual + diaAtual + "0001";
+            nextTicket = anoAtual + mesAtual + diaAtual + "0001";
         }
 
-        System.out.println("Novo ticker number: " + nextTicketNumber);
-        return nextTicketNumber;
+        System.out.println("Novo ticker : " + nextTicket);
+        return nextTicket;
     }
 
     public List<IncidenceDTO> getIncidencesByCategory(Category category, User user) throws  Exception {

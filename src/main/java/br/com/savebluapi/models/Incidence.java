@@ -46,5 +46,5 @@ public class Incidence {
     private Boolean valid;
 
     @Column(nullable = false)
-    private String ticketNumber;
+    private String ticket;
 }

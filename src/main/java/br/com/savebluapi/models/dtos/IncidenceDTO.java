@@ -32,5 +32,5 @@ public class IncidenceDTO implements Serializable {
 
     private Boolean valid;
 
-    private String ticketNumber;
+    private String ticket;
 }
