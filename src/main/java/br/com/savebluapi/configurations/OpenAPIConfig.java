@@ -18,7 +18,7 @@ public class OpenAPIConfig {
   @Value("http://localhost:8080")
   private String devUrl;
 
-  @Value("https://52.23.70.87:8080/")
+  @Value("http://52.23.70.87:8080")
   private String prodUrl;
   @Bean
   public OpenAPI myOpenAPI() {
