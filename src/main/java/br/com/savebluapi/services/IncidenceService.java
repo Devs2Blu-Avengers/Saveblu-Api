@@ -1,47 +1,61 @@
 package br.com.savebluapi.services;
 
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.MultipartFile;
+
 import br.com.savebluapi.enums.Category;
 import br.com.savebluapi.enums.UserType;
 import br.com.savebluapi.models.Incidence;
 import br.com.savebluapi.models.User;
 import br.com.savebluapi.models.dtos.IncidenceDTO;
-import br.com.savebluapi.models.dtos.UserDTO;
 import br.com.savebluapi.repositories.IncidenceRepository;
-import br.com.savebluapi.repositories.UserRepository;
-
 import jakarta.persistence.EntityNotFoundException;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class IncidenceService {
 
-    @Autowired
-    IncidenceRepository incidenceRepository;
+	@Autowired
+	IncidenceRepository incidenceRepository;
 
-    @Autowired
-    UserRepository userRepository;
+	@Autowired
+	UserService userService;
 
-    @Autowired
-    UserService userService;
+	@Autowired
+	ModelMapper mapper;
 
-    @Autowired
-    ModelMapper mapper;
+	public IncidenceDTO findById(Long incidenceID) throws Exception{
+		Optional<Incidence> optional = incidenceRepository.findById(incidenceID);
+		if (optional.isPresent()) {
+            return mapper.map(optional.get(), IncidenceDTO.class);
+        } else {
+            throw new Exception("Não encontrado");
+        }
+	}
 
-    public Long createNewIncidence(IncidenceDTO incidenceDTO) throws Exception {
+	public Incidence createIncidenceFromDTO(IncidenceDTO incidenceDTO, MultipartFile imageFile) throws Exception {
+	    byte[] imageBytes = imageFile.getBytes();
+	    incidenceDTO.setImage(imageBytes);
+	    return mapper.map(incidenceDTO, Incidence.class);
+	}
 
-        Incidence incidenceCreated = null;
+	public Long createNewIncidence(IncidenceDTO incidenceDTO, MultipartFile imageFile) throws Exception {
 
+		IncidenceDTO newIncidenceDTO = null;
         // Validar dados
         if (incidenceDTO.getUser() == null) {
                 throw new Exception("Informe o id do usuário existente");
@@ -52,17 +66,24 @@ public class IncidenceService {
         System.out.println(incidenceDTO.toString());
 
         try {
-            incidenceCreated = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
+			// Cria a imagem
+			byte[] imageBytes = imageFile.getBytes();
+	    	incidenceDTO.setImage(imageBytes);
+
+            Incidence newIncidence = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
+
+			newIncidenceDTO = mapper.map(newIncidence, IncidenceDTO.class);
+
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
             throw new Exception("Erro ao criar um Incidente");
         }
 
-        return incidenceCreated.getId();
+        return newIncidenceDTO.getId();
     }
 
-    public String getNextTicket(){
+	public String getNextTicket(){
         String nextTicket = null;
 
         String maxTicket = incidenceRepository.findMaxTicket();
@@ -87,8 +108,8 @@ public class IncidenceService {
         return nextTicket;
     }
 
-    public List<IncidenceDTO> getIncidencesByCategory(Category category, User user) throws  Exception {
-        /**
+	public List<IncidenceDTO> getIncidencesByCategory(Category category, User user) throws Exception {
+		/**
          * TODO: retorna todos os incidentes de uma lista de categorias informadas
          *
          * A regra de negócio de quem poderá consumir esse endpoint não foi definida
@@ -105,7 +126,7 @@ public class IncidenceService {
          *  incidente: ObjectJson
          * }
          */
-        List<IncidenceDTO> incidenceDTOList = new ArrayList<>();
+		List<IncidenceDTO> incidenceDTOList = new ArrayList<>();
 
         if (user.getType() != UserType.CIDADAO) {
             incidenceDTOList = incidenceRepository.findAll().stream().filter(incidence ->
@@ -119,12 +140,12 @@ public class IncidenceService {
             }
         }
 
-
         return incidenceDTOList;
-    }
+	}
 
-    public List<IncidenceDTO> getNearIncidentsByPositionRadius(User user,Category category,Double latitude, Double longitude, Double radiusInMeters) throws Exception {
-        /*
+	public List<IncidenceDTO> getNearIncidentsByPositionRadius(User user, Category category, Double latitude,
+			Double longitude, Double radiusInMeters) {
+		/*
          * TODO: retornar uma lista de incidentes próximos a posição informada
          *
          * A regra de negócio que define quais incidentes são exibidos por tipo de usuário não foi definida
@@ -145,7 +166,7 @@ public class IncidenceService {
          *
          */
 
-        // Carregar do banco as incidências
+		// Carregar do banco as incidências
         List<IncidenceDTO> incidenceDTOList = incidenceRepository.findAll().stream()
                 .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
         // Incidentes que serão filtrados
@@ -197,10 +218,10 @@ public class IncidenceService {
         }
 
         return incidenceDTOListiInRadius;
-    }
+	}
 
-    public List<IncidenceDTO> getUserNearIncidents(User user, Category category) throws Exception {
-        /*
+	public List<IncidenceDTO> getUserNearIncidents(User user, IncidenceDTO incidenceDTO, Category category) {
+		/*
          * TODO: retornar uma lista de incidentes próximos as coordenadas do usuário informado
          *
          *
@@ -222,8 +243,7 @@ public class IncidenceService {
          * Não retornar todas as informações para usuário do tipo CIDADAO
          */
 
-
-        // Carregar do banco as incidências
+		// Carregar do banco as incidências
         List<IncidenceDTO> incidenceDTOList = incidenceRepository.findAll().stream()
                 .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
         // Incidentes que serão filtrados
@@ -270,10 +290,9 @@ public class IncidenceService {
                 user.getLastLongitude(), incidenceDTOList, 1000);
 
         return incidenceDTOListNearUser;
-    }
+	}
 
-
-    // Função encontra incidentes num dado raio coordenadas
+	// Função encontra incidentes num dado raio coordenadas
     public static List<IncidenceDTO> findIncidentsInRadius(double userLatitude, double userLongitude, List<IncidenceDTO> incidenceDTOList, double radiusInMeters) {
         List<IncidenceDTO> nearbyIncidencesDTO = new ArrayList<>();
 
@@ -304,9 +323,21 @@ public class IncidenceService {
         return nearbyIncidencesDTO;
     }
 
-    // Mensagens de Exceções personalizadas
+
+	public byte[] getImageBytesById(Long id) {
+		try {
+			Incidence incidence = incidenceRepository.findById(id).orElseThrow(
+					() -> new IllegalArgumentException("Imagem da incidência não encontrada com o ID: " + id));
+			return incidence.getImage();
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
+	}
+
+	// Mensagens de Exceções personalizadas
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleCustomException(Exception ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
+
 }

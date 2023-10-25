@@ -5,7 +5,7 @@ import br.com.savebluapi.models.User;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.sql.Date;
 
 @Data
 public class IncidenceDTO implements Serializable {
@@ -25,7 +25,9 @@ public class IncidenceDTO implements Serializable {
     private String description;
 
     private User user;
-
+    
+    private byte[] image;
+    
     private Boolean urgent;
 
     private Boolean status;

@@ -1,0 +1,3 @@
+-- INCIDENTES
+ALTER TABLE incidence
+ADD COLUMN IF NOT EXISTS image bytea;
