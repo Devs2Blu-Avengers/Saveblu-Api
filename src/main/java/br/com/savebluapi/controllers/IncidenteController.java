@@ -50,7 +50,7 @@ public class IncidenteController {
          */
 
         // Verificar se o Usuário tem um device cadastrado
-        if (user.getDevices() == null) {
+        if (user.getDeviceToken() == null) {
             throw new Exception("Usuário sem um device cadastrado!");
         }
 

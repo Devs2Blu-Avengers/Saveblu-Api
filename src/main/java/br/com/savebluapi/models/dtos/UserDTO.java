@@ -1,7 +1,7 @@
 package br.com.savebluapi.models.dtos;
 
 import br.com.savebluapi.enums.UserType;
-import br.com.savebluapi.models.Device;
+import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -22,5 +22,9 @@ public class UserDTO implements Serializable {
 
     private UserType type;
 
-    private List<Device> devices;
+    private String deviceToken;
+
+	private Double lastLatitude;
+
+	private Double lastLongitude;
 }
