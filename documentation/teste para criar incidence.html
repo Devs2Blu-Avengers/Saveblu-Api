@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Formulário de Envio de Incidência</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+        button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cadastro de Incidência</h1>
+    <form action="http://localhost:8080/incidence/create" method="post" enctype="multipart/form-data">
+        <!-- Data -->
+        <label for="date">Data:</label>
+        <input type="text" name="date" id="date" value="2023-11-23">
+
+        <!-- Latitude -->
+        <label for="latitude">Latitude:</label>
+        <input type="text" name="latitude" id="latitude" value="55.555">
+
+        <!-- Longitude -->
+        <label for "longitude">Longitude:</label>
+        <input type="text" name="longitude" id="longitude" value="66.666">
+
+        <!-- Categoria -->
+        <label for="category">Categoria:</label>
+        <select name="category" id="category">
+            <option value="INCENDIO">Incêndio</option>
+            <option value="ENCHENTE">Enchente</option>
+            <option value="ALAGAMENTO">Alagamento</option>
+            <option value="RISCO_ELETRICO">Risco Elétrico</option>
+            <option value="AFOGAMENTO">Afo gamento</option>
+            <option value="DESLIZAMENTO">Deslizamento</option>
+            <option value="OUTROS">Outros</option>
+            <option value="POLUICAO_AMBIENTAL">Poluição Ambiental</option>
+            <option value="TRAFICO_ANIMAIS">Tráfico de Animais</option>
+            <option value="DESMATAMENTO_ILEGAL">Desmatamento Ilegal</option>
+            <option value="CONTAMINACAO">Contaminação</option>
+        </select>
+
+        <!-- Descrição -->
+        <label for="description">Descrição:</label>
+        <input type="text" name="description" id="description" value="Rico choque alta tensão">
+
+        <!-- E-mail do Usuário -->
+        <label for="user.email">E-mail do Usuário:</label>
+        <input type="text" name="user.email" id="user.email" value="alog.algo@gmail.com">
+
+        <!-- Nome do Usuário -->
+        <label for="user.name">Nome do Usuário:</label>
+        <input type="text" name="user.name" id="user.name" value="teste">
+
+        <!-- Telefone do Usuário -->
+        <label for="user.telephone">Telefone do Usuário:</label>
+        <input type="text" name="user.telephone" id="user.telephone" value="999999999">
+
+        <!-- Tipo do Usuário -->
+        <label for="user.type">Tipo do Usuário:</label>
+        <select name="user.type" id="user.type">
+            <option value="CIDADAO">CIDADAO</option>
+            <option value="ENFERMEIRO">ENFERMEIRO</option>
+            <option value="BOMBEIRO">BOMBEIRO</option>
+            <option value="BRIGADISTA">BRIGADISTA</option>
+            <option value="FISCAL_AMBIENTAL">FISCAL AMBIENTAL</option>
+            <option value="POLICIA_AMBIENTAL">POLICIA AMBIENTAL</option>
+            <option value="DEFESA_CIVIL">DEFESA CIVIL</option>
+            <option value="FISCAL_SANITARIO">FISCAL SANITARIO</option>
+        </select>
+
+        <!-- Urgente -->
+        <label for="urgent">Urgente:</label>
+        <input type="checkbox" name="urgent" id="urgent" checked>
+
+        <!-- Status -->
+        <label for="status">Status:</label>
+        <input type="checkbox" name="status" id="status" checked>
+
+        <!-- Válido -->
+        <label for="valid">Válido:</label>
+        <input type="checkbox" name="valid" id="valid" checked>
+
+        <!-- Campo de Arquivo (Imagem) -->
+        <label for="image">Escolha uma imagem:</label>
+        <input type="file" name="imageFile" id="imageFile">
+        
+        <br>
+
+        <button type="submit">Enviar</button>
+    </form>
+</body>
+</html>

@@ -1,15 +1,26 @@
 package br.com.savebluapi.controllers;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import br.com.savebluapi.enums.Category;
 import br.com.savebluapi.models.User;
 import br.com.savebluapi.models.dtos.IncidenceDTO;
-import br.com.savebluapi.models.dtos.UserDTO;
 import br.com.savebluapi.services.IncidenceService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(value = "/incidence")
@@ -108,7 +119,8 @@ public class IncidenteController {
 
     @Operation(description = "Cadastra uma Incidência", method = "POST")// customizando UI do Swagger
     @PostMapping(value = "/create")
-    public ResponseEntity<Object> createNewIncidence(@RequestBody IncidenceDTO incidenceDTO){
+    public ResponseEntity<Object> createNewIncidence(@Valid  @ModelAttribute IncidenceDTO incidenceDTO,
+    	    @RequestParam("imageFile") MultipartFile imageFile){
         /*
          * TODO: deve gravar um novo incidente
          * 
@@ -131,9 +143,19 @@ public class IncidenteController {
          */
 
         try {
-            return ResponseEntity.ok(incidenceService.createNewIncidence(incidenceDTO));
+            return ResponseEntity.ok(incidenceService.createNewIncidence(incidenceDTO, imageFile));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    
+    @Operation(description = "Retorna a imagem do incidência através do id", method = "GET")
+    @GetMapping("/image/{id}")
+    public ResponseEntity<byte[]> getImageById(@PathVariable Long id) {
+        byte[] imageBytes = incidenceService.getImageBytesById(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_PNG);
+        return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
+    }
+    
 }
