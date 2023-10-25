@@ -10,9 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import br.com.savebluapi.models.Device;
 import br.com.savebluapi.models.User;
-import br.com.savebluapi.models.dtos.DeviceDTO;
 import br.com.savebluapi.models.dtos.UserDTO;
 import br.com.savebluapi.repositories.UserRepository;
 
@@ -25,9 +23,6 @@ public class UserService {
 
 	@Autowired
 	private UserRepository userRepository;
-
-	@Autowired
-	private DeviceService deviceRepository;
 
 	@Autowired
     ModelMapper mapper;
@@ -51,11 +46,6 @@ public class UserService {
 		return userRepository.findAll();
 	}
 
-	public List<Device> findAllDevicesForUserId(Long userId) {
-		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
-		return user.getDevices();
-	}
 	
 	public User findUserByEmail(String email) {
         User user = userRepository.findByEmail(email);
@@ -92,7 +82,7 @@ public class UserService {
 		existingUser.setName(updatedUserDate.getName());
 		existingUser.setTelephone(updatedUserDate.getTelephone());
 		existingUser.setType(updatedUserDate.getType());
-		existingUser.setDevices(updatedUserDate.getDevices());
+		existingUser.setDeviceToken(updatedUserDate.getDeviceToken());
 
 		User updatedUser = userRepository.save(existingUser);
 
@@ -109,11 +99,6 @@ public class UserService {
 		try {
 			User entity = mapper.map(newUser, User.class);
 			User created = userRepository.save(entity);
-
-			DeviceDTO device = mapper.map(newUser.getDevices().get(0), DeviceDTO.class);
-			
-			device.setUser(created);
-			deviceRepository.create(device);
 
 			return created.getId();
 		} catch(ConstraintViolationException | DataIntegrityViolationException e){
@@ -161,10 +146,10 @@ public class UserService {
 		userRepository.delete(existingUser);
 	}
 
-	public void notifyDevices() {
+	public void notifyDevice() {
 		/**
-		 * TODO: notifica todos os dispositivos do usuário Esse método irá notificar os
-		 * dispositivos do usuário utilizando a api do Firebase
+		 * TODO: notifica o dispositivo do usuário
+		 * Esse método irá notificar o dispositivo utilizando a api do Firebase
 		 */
 	}
 

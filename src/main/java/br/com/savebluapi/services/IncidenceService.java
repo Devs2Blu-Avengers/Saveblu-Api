@@ -2,12 +2,10 @@ package br.com.savebluapi.services;
 
 import br.com.savebluapi.enums.Category;
 import br.com.savebluapi.enums.UserType;
-import br.com.savebluapi.models.Device;
 import br.com.savebluapi.models.Incidence;
 import br.com.savebluapi.models.User;
 import br.com.savebluapi.models.dtos.IncidenceDTO;
 import br.com.savebluapi.models.dtos.UserDTO;
-import br.com.savebluapi.repositories.DeviceRepository;
 import br.com.savebluapi.repositories.IncidenceRepository;
 import br.com.savebluapi.repositories.UserRepository;
 
@@ -33,9 +31,6 @@ public class IncidenceService {
 
     @Autowired
     UserService userService;
-
-    @Autowired
-    DeviceRepository deviceRepository;
 
     @Autowired
     ModelMapper mapper;
@@ -274,8 +269,8 @@ public class IncidenceService {
 
         // Lista para armazenar os incidentes perto do Usuário
         // (defini que aparecerão as incidências num raio de 1000m do usuário)
-        incidenceDTOListNearUser = findIncidentsInRadius(user.getDevices().get(0).getLast_latitude(),
-                user.getDevices().get(0).getLast_longitude(), incidenceDTOList, 1000);
+        incidenceDTOListNearUser = findIncidentsInRadius(user.getLastLatitude(),
+                user.getLastLongitude(), incidenceDTOList, 1000);
 
         return incidenceDTOListNearUser;
     }

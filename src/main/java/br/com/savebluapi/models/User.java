@@ -1,8 +1,5 @@
 package br.com.savebluapi.models;
 
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import br.com.savebluapi.enums.UserType;
 import jakarta.persistence.*;
@@ -29,8 +26,14 @@ public class User {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private UserType type;
+
+	@Column(nullable = false)
+	private String deviceToken;
+
+	@Column(nullable = false)
+	private Double lastLatitude;
+
+	@Column(nullable = false)
+	private Double lastLongitude;
 	
-	@OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
-	@JsonIgnoreProperties("user")
-	private List<Device> devices;
 }
