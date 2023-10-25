@@ -1,5 +1,4 @@
 create.sql
-src/main/resources/application.properties
 src/main/resources/application-prod.properties
 HELP.md
 target/
@@ -34,3 +33,4 @@ build/
 
 ### VS Code ###
 .vscode/
+src/main/resources/application.properties
