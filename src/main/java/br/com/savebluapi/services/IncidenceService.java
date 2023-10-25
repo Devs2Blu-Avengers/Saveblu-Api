@@ -12,14 +12,14 @@ import br.com.savebluapi.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,64 +30,61 @@ public class IncidenceService {
     IncidenceRepository incidenceRepository;
 
     @Autowired
+    UserRepository userRepository;
+
+    @Autowired
     UserService userService;
 
     @Autowired
     ModelMapper mapper;
 
     public Long createNewIncidence(IncidenceDTO incidenceDTO) throws Exception {
-        /*
-         * TODO: deve gravar um novo incidente
-         *
-         *
-         * Deve receber um objeto com o usuário e o incidente
-         *
-         * Recebe:
-         * {
-         *  user: ObjectJSON,
-         *  incidente: ObjectJson
-         * }
-         *
-         * Regras para a service:
-         * Se o campo Incidente.getUrgent() == true quer dizer que é um S.O.S.
-         * caso contrário é apenas uma denúncia
-         *
-         * User->Devices pode ser nulo caso o usuário for anônimo [Hazel]
-         *
-         * Se o usuário não existir cria um novo usuário no banco, a chave única será o endereço de email
-         */
+
         Incidence incidenceCreated = null;
 
-        if (incidenceDTO.getUrgent()) {
-            // SOS
-
-        } else {
-            // Denúncia
+        // Validar dados
+        if (incidenceDTO.getUser() == null) {
+                throw new Exception("Informe o id do usuário existente");
         }
 
+        // Define o próximo ticket number
+        incidenceDTO.setTicketNumber(getNextTicketNumber());
+        System.out.println(incidenceDTO.toString());
+
         try {
-
-            if (incidenceDTO.getUser() == null) {
-                // Se o usuário for nulo
-                incidenceCreated = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
-
-            } else {
-                User userSearched = userService.findUserByEmail(incidenceDTO.getUser().getEmail());
-                if (userSearched != null) {
-                    incidenceCreated = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
-                }
-
-
-            }
-        } catch (EntityNotFoundException e) {
-            // Cria um usuário se ele não existir
             incidenceCreated = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
         }
         catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new Exception("Erro ao criar um Incidente");
         }
 
         return incidenceCreated.getId();
+    }
+
+    public String getNextTicketNumber(){
+        String nextTicketNumber = null;
+
+        String maxTicketNumber = incidenceRepository.findMaxTicketNumber();
+
+        // Obtém o ano atual, mês e dia
+        String anoAtual = LocalDate.now().format(DateTimeFormatter.ofPattern("yy"));
+        String mesAtual = LocalDate.now().format(DateTimeFormatter.ofPattern("MM"));
+        String diaAtual = LocalDate.now().format(DateTimeFormatter.ofPattern("dd"));
+
+        if (maxTicketNumber != null && maxTicketNumber.startsWith(anoAtual)) {
+            // Se o ano atual é o mesmo do último ticket_number, incrementa o número
+            int numeroAtual = Integer.parseInt(maxTicketNumber.substring(6)); // Removendo os primeiros 6 caracteres
+            int proximoNumero = numeroAtual + 1;
+            String proximoNumeroStr = String.valueOf(proximoNumero).length() > 5 ? String.valueOf(proximoNumero) : String.format("%04d", proximoNumero); // Garante que o próximo número tenha 4 dígitos ou mais digitos
+            nextTicketNumber = anoAtual + mesAtual + diaAtual + proximoNumeroStr;
+        } else {
+            // Caso contrário, começa com o primeiro número do ano atual
+            nextTicketNumber = anoAtual + mesAtual + diaAtual + "0001";
+        }
+
+        System.out.println("Novo ticker number: " + nextTicketNumber);
+        return nextTicketNumber;
     }
 
     public List<IncidenceDTO> getIncidencesByCategory(Category category, User user) throws  Exception {

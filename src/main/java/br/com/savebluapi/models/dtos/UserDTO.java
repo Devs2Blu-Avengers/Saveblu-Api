@@ -1,18 +1,16 @@
 package br.com.savebluapi.models.dtos;
 
 import br.com.savebluapi.enums.UserType;
-import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 @Data
 public class UserDTO implements Serializable {
 
     private static final long  serialVersionUID = 42L;
 
-    Long id;
+    private Long id;
 
     private String email;
 
