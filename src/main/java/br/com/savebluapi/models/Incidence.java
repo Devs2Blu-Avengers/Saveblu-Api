@@ -43,7 +43,7 @@ public class Incidence {
     @Column(nullable = false)
     private String description;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
@@ -58,4 +58,7 @@ public class Incidence {
 
     @Column
     private Boolean valid;
+
+    @Column(nullable = false)
+    private String ticket;
 }

@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +21,7 @@ import br.com.savebluapi.models.User;
 import br.com.savebluapi.models.dtos.IncidenceDTO;
 import br.com.savebluapi.services.IncidenceService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 
 @RestController
@@ -29,38 +31,10 @@ public class IncidenteController {
     @Autowired
     IncidenceService incidenceService;
     
-//    @PostMapping
-//    public ResponseEntity<Object> getUserNearIncidents(){
-//        /*
-//         * TODO: retornar uma lista de incidentes próximos as coordenadas do usuário informado
-//         *
-//         *
-//         * RECEBE:
-//         * {
-//         *      user: ObjectJSON,           (opcional) Se não for informado é um usuário anônimo/cidadão
-//         *      position: ObjectJSON,       (obrigatória) Para restringir a uma localização específica
-//         *      categories: Array<int>      (opcional) Se passar a categoria filtra por categoria
-//         * }
-//         *
-//         * RETORNA:
-//         * [
-//         *      {ObjectJson1<incidence>},
-//         *      {ObjectJson2<incidence>},
-//         *      {ObjectJson3<incidence>}
-//         * ]
-//         *
-//         * A regra de negócio que define quais incidentes são exibidos por tipo de usuário não foi definida
-//         *
-//         * Não retornar todas as informações para usuário do tipo CIDADAO
-//         */
-//
-//        return null;
-//    }
-
     @Operation(description = "Retornar uma lista de incidentes próximos a posição informada", method = "GET")// customizando UI do Swagger
     @GetMapping(value = "/byposition")
-    public ResponseEntity<Object> getNearIncidentsByPositionRadius(@RequestBody User user, @RequestParam Category category
-            , @RequestParam Double latitude, @RequestParam Double longitude, @RequestParam Double radiusInMeters){
+    public ResponseEntity<Object> getNearIncidentsByPositionRadius(@RequestBody @Nullable User user, @RequestParam @Nullable Category category
+            , @RequestParam(required = false) Double latitude, @RequestParam(required = false) Double longitude, @RequestParam(required = false) Double radiusInMeters) throws  Exception {
         /*
          * TODO: retornar uma lista de incidentes próximos a posição informada
          *
@@ -81,11 +55,16 @@ public class IncidenteController {
          * ]
          *
          */
+        if (latitude == null || longitude == null || radiusInMeters == null) {
+            throw  new Exception("Coordenadas(latitude e longitude) e raio não podem ser nulos!!");
+        }
+
+
         try {
             return ResponseEntity.ok(incidenceService.getNearIncidentsByPositionRadius(user, category, latitude,
                     longitude, radiusInMeters));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -147,6 +126,12 @@ public class IncidenteController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    // Mensagens de Exceções personalizadas
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleCustomException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
     
     @Operation(description = "Retorna a imagem do incidência através do id", method = "GET")

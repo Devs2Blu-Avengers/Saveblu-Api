@@ -1,6 +1,8 @@
 package br.com.savebluapi.services;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +10,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,7 +22,6 @@ import br.com.savebluapi.enums.UserType;
 import br.com.savebluapi.models.Incidence;
 import br.com.savebluapi.models.User;
 import br.com.savebluapi.models.dtos.IncidenceDTO;
-import br.com.savebluapi.repositories.DeviceRepository;
 import br.com.savebluapi.repositories.IncidenceRepository;
 import jakarta.persistence.EntityNotFoundException;
 
@@ -31,9 +35,6 @@ public class IncidenceService {
 	UserService userService;
 
 	@Autowired
-	DeviceRepository deviceRepository;
-
-	@Autowired
 	ModelMapper mapper;
 
 	public Incidence createIncidenceFromDTO(IncidenceDTO incidenceDTO, MultipartFile imageFile) throws Exception {
@@ -43,199 +44,275 @@ public class IncidenceService {
 	}
 
 	public Long createNewIncidence(IncidenceDTO incidenceDTO, MultipartFile imageFile) throws Exception {
-	    Incidence incidenceCreated = null;
 
-	    if (incidenceDTO.getUrgent()) {
-	        // SOS
-	    } else {
-	        // Denúncia
-	    }
+		IncidenceDTO newIncidenceDTO = null;
+        // Validar dados
+        if (incidenceDTO.getUser() == null) {
+                throw new Exception("Informe o id do usuário existente");
+        }
 
-	    try {
-	        if (incidenceDTO.getUser() == null) {
-	            // Se o usuário for nulo
-	            incidenceCreated = createIncidenceFromDTO(incidenceDTO, imageFile);
-	            incidenceCreated = incidenceRepository.save(incidenceCreated);
-	        } else {
-	            User userSearched = userService.findUserByEmail(incidenceDTO.getUser().getEmail());
-	            if (userSearched != null) {
-	                incidenceCreated = createIncidenceFromDTO(incidenceDTO, imageFile);
-	                incidenceCreated = incidenceRepository.save(incidenceCreated);
-	            }
-	        }
+        // Define o próximo ticket 
+        incidenceDTO.setTicket(getNextTicket());
+        System.out.println(incidenceDTO.toString());
 
-	        if (incidenceCreated == null) {
-	            throw new Exception("Erro ao criar um Incidente: Incidência não foi criada.");
-	        }
-	    } catch (IOException e) {
-	        throw new Exception("Erro ao ler os bytes do arquivo: " + e.getMessage());
-	    } catch (MultipartException e) {
-	        throw new Exception("Erro ao processar o arquivo: " + e.getMessage());
-	    } catch (EntityNotFoundException e) {
-	        // Cria um usuário se ele não existir
-	        incidenceCreated = createIncidenceFromDTO(incidenceDTO, imageFile);
-	        incidenceCreated = incidenceRepository.save(incidenceCreated);
-	    } catch (Exception e) {
-	        throw new Exception("Erro ao criar um Incidente: " + e.getMessage());
-	    }
-	    
-	    return incidenceCreated.getId();
-	}
+        try {
+			// Cria a imagem
+			byte[] imageBytes = imageFile.getBytes();
+	    	incidenceDTO.setImage(imageBytes);
+
+            Incidence newIncidence = incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class));
+
+			newIncidenceDTO = mapper.map(newIncidence, IncidenceDTO.class);
+
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new Exception("Erro ao criar um Incidente");
+        }
+
+        return newIncidenceDTO.getId();
+    }
+
+	public String getNextTicket(){
+        String nextTicket = null;
+
+        String maxTicket = incidenceRepository.findMaxTicket();
+
+        // Obtém o ano atual, mês e dia
+        String anoAtual = LocalDate.now().format(DateTimeFormatter.ofPattern("yy"));
+        String mesAtual = LocalDate.now().format(DateTimeFormatter.ofPattern("MM"));
+        String diaAtual = LocalDate.now().format(DateTimeFormatter.ofPattern("dd"));
+
+        if (maxTicket != null && maxTicket.startsWith(anoAtual)) {
+            // Se o ano atual é o mesmo do último ticket, incrementa o número
+            int numeroAtual = Integer.parseInt(maxTicket.substring(6)); // Removendo os primeiros 6 caracteres
+            int proximoNumero = numeroAtual + 1;
+            String proximoNumeroStr = String.valueOf(proximoNumero).length() > 5 ? String.valueOf(proximoNumero) : String.format("%04d", proximoNumero); // Garante que o próximo número tenha 4 dígitos ou mais digitos
+            nextTicket = anoAtual + mesAtual + diaAtual + proximoNumeroStr;
+        } else {
+            // Caso contrário, começa com o primeiro número do ano atual
+            nextTicket = anoAtual + mesAtual + diaAtual + "0001";
+        }
+
+        System.out.println("Novo ticker : " + nextTicket);
+        return nextTicket;
+    }
 
 	public List<IncidenceDTO> getIncidencesByCategory(Category category, User user) throws Exception {
 		/**
-		 * TODO: retorna todos os incidentes de uma lista de categorias informadas
-		 *
-		 * A regra de negócio de quem poderá consumir esse endpoint não foi definida
-		 *
-		 * Não retornar todas as informações para usuário do tipo CIDADAO
-		 *
-		 * recebe um usuário e uma lista categorias { user: ObjectJSON, categorylist:
-		 * ArrayInteger } retorna uma lista de incidentes de acordo com a categoria
-		 * informada { incidente: ObjectJson }
-		 */
+         * TODO: retorna todos os incidentes de uma lista de categorias informadas
+         *
+         * A regra de negócio de quem poderá consumir esse endpoint não foi definida
+         *
+         * Não retornar todas as informações para usuário do tipo CIDADAO
+         *
+         * recebe um usuário e uma lista categorias
+         * {
+         *  user: ObjectJSON,
+         *  categorylist: ArrayInteger
+         * }
+         * retorna uma lista de incidentes de acordo com a categoria informada
+         * {
+         *  incidente: ObjectJson
+         * }
+         */
 		List<IncidenceDTO> incidenceDTOList = new ArrayList<>();
 
-		if (user.getType() != UserType.CIDADAO) {
-			incidenceDTOList = incidenceRepository.findAll().stream()
-					.filter(incidence -> incidence.getCategory() == category)
-					.map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
-		} else {
-			if (category == Category.ALAGAMENTO || category == Category.DESLIZAMENTO || category == Category.ENCHENTE
-					|| category == Category.INCENDIO) {
-				incidenceDTOList = incidenceRepository.findAll().stream()
-						.filter(incidence -> incidence.getCategory() == category)
-						.map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
-			}
-		}
+        if (user.getType() != UserType.CIDADAO) {
+            incidenceDTOList = incidenceRepository.findAll().stream().filter(incidence ->
+                            incidence.getCategory() == category).
+                    map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+        } else {
+            if (category == Category.ALAGAMENTO || category == Category.DESLIZAMENTO || category == Category.ENCHENTE || category == Category.INCENDIO) {
+                incidenceDTOList = incidenceRepository.findAll().stream().filter(incidence ->
+                                incidence.getCategory() == category).
+                        map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+            }
+        }
 
-		return incidenceDTOList;
+        return incidenceDTOList;
 	}
 
 	public List<IncidenceDTO> getNearIncidentsByPositionRadius(User user, Category category, Double latitude,
 			Double longitude, Double radiusInMeters) {
 		/*
-		 * TODO: retornar uma lista de incidentes próximos a posição informada
-		 *
-		 * A regra de negócio que define quais incidentes são exibidos por tipo de
-		 * usuário não foi definida
-		 *
-		 * RECEBE: { user: ObjectJSON, (opcional) Se não for informado é um usuário
-		 * anônimo/cidadão position: ObjectJSON, (obrigatória) Para limitar a um raio
-		 * específico da posição do usuário (110 ? 200 ? 330 ?) categories: Array<int>
-		 * (opcional) Se passar a categoria filtra por categoria }
-		 *
-		 * RETORNA: [ {ObjectJson<incidence1>}, {ObjectJson<incidence2>},
-		 * {ObjectJson<incidence3>} ]
-		 *
-		 */
+         * TODO: retornar uma lista de incidentes próximos a posição informada
+         *
+         * A regra de negócio que define quais incidentes são exibidos por tipo de usuário não foi definida
+         *
+         * RECEBE:
+         * {
+         *      user: ObjectJSON,           (opcional) Se não for informado é um usuário anônimo/cidadão
+         *      position: ObjectJSON,       (obrigatória) Para limitar a um raio específico da posição do usuário (110 ? 200 ? 330 ?)
+         *      categories: Array<int>      (opcional) Se passar a categoria filtra por categoria
+         * }
+         *
+         * RETORNA:
+         * [
+         *      {ObjectJson<incidence1>},
+         *      {ObjectJson<incidence2>},
+         *      {ObjectJson<incidence3>}
+         * ]
+         *
+         */
 
 		// Carregar do banco as incidências
-		List<IncidenceDTO> incidenceDTOList = new ArrayList<>();
+        List<IncidenceDTO> incidenceDTOList = incidenceRepository.findAll().stream()
+                .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+        // Incidentes que serão filtrados
+        List<IncidenceDTO> incidenceDTOListiInRadius= null;
 
-		if (user.getType() != UserType.CIDADAO) {
-			incidenceDTOList = incidenceRepository.findAll().stream()
-					.map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
-		}
+            // Se for um usuário especial
+            if (user != null && user.getType() != UserType.CIDADAO) {
+                // Lista por categoria
+                if (category != null) {
+                    incidenceDTOList = incidenceDTOList.stream()
+                            .filter(incidence -> incidence.getCategory() == category)
+                            .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                } else {
+                    // Lista todos
+                    incidenceDTOList = incidenceDTOList.stream()
+                            .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                }
+            } else {
+                // Se for um cidadão
+                if (category != null) {
+                    // categorias permitidas para o cidadão
+                    if (category == Category.ENCHENTE ||
+                            category == Category.ALAGAMENTO ||
+                            category == Category.DESLIZAMENTO
+                    )
+                        incidenceDTOList = incidenceDTOList.stream()
+                                .filter(incidence -> incidence.getCategory() == category)
+                                .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                } else {
+                    // lista todas as categorias permitidas para o cidadão
+                    incidenceDTOList = incidenceDTOList.stream()
+                            .filter(
+                                    incidence -> incidence.getCategory() == Category.ENCHENTE ||
+                                            incidence.getCategory() == Category.ALAGAMENTO ||
+                                            incidence.getCategory() == Category.DESLIZAMENTO
+                            )
+                            .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                }
+            }
 
-		// Lista para armazenar os incidentes dentro do raio
-		List<IncidenceDTO> incidenceDTOListiInRadius = findIncidentsInRadius(latitude, longitude, incidenceDTOList,
-				radiusInMeters);
+            // Lista para armazenar os incidentes dentro do raio
+            incidenceDTOListiInRadius = findIncidentsInRadius(latitude, longitude, incidenceDTOList, radiusInMeters);
 
-		for (IncidenceDTO incidenteDTO : incidenceDTOListiInRadius) {
-			System.out.print(incidenteDTO.getLatitude().toString() + ",");
-			System.out.print(incidenteDTO.getLongitude().toString() + ",");
-			System.out.print(incidenteDTO.getCategory().toString() + ",");
-			System.out.println("#FF5733");
-		}
+        for (IncidenceDTO incidenteDTO : incidenceDTOListiInRadius) {
+            System.out.print(incidenteDTO.getLatitude().toString()+ ",");
+            System.out.print(incidenteDTO.getLongitude().toString()+ ",");
+            System.out.print(incidenteDTO.getCategory().toString()+ ",");
+            System.out.println("#FF5733");
+        }
 
-		return incidenceDTOListiInRadius;
+        return incidenceDTOListiInRadius;
 	}
 
 	public List<IncidenceDTO> getUserNearIncidents(User user, IncidenceDTO incidenceDTO, Category category) {
 		/*
-		 * TODO: retornar uma lista de incidentes próximos as coordenadas do usuário
-		 * informado
-		 *
-		 *
-		 * RECEBE: { user: ObjectJSON, (opcional) Se não for informado é um usuário
-		 * anônimo/cidadão position: ObjectJSON, (obrigatória) Para restringir a uma
-		 * localização específica categories: Array<int> (opcional) Se passar a
-		 * categoria filtra por categoria }
-		 *
-		 * RETORNA: [ {ObjectJson1<incidence>}, {ObjectJson2<incidence>},
-		 * {ObjectJson3<incidence>} ]
-		 *
-		 * A regra de negócio que define quais incidentes são exibidos por tipo de
-		 * usuário não foi definida
-		 *
-		 * Não retornar todas as informações para usuário do tipo CIDADAO
-		 */
-		// Número de incidentes a serem recuperados
-		int numberOfIncidentsToRetrieve = 10;
-		Pageable pageable = PageRequest.of(0, numberOfIncidentsToRetrieve);
+         * TODO: retornar uma lista de incidentes próximos as coordenadas do usuário informado
+         *
+         *
+         * RECEBE:
+         * {
+         *      user: ObjectJSON,           (obrigatória) Pois irá pegar as coordenadas do device do usuário
+         *      categories: Array<int>      (opcional) Se passar a categoria filtra por categoria
+         * }
+         *
+         * RETORNA:
+         * [
+         *      {ObjectJson1<incidence>},
+         *      {ObjectJson2<incidence>},
+         *      {ObjectJson3<incidence>}
+         * ]
+         *
+         * A regra de negócio que define quais incidentes são exibidos por tipo de usuário não foi definida
+         *
+         * Não retornar todas as informações para usuário do tipo CIDADAO
+         */
 
-		List<IncidenceDTO> nearIncidenceDTOList = new ArrayList<>();
+		// Carregar do banco as incidências
+        List<IncidenceDTO> incidenceDTOList = incidenceRepository.findAll().stream()
+                .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+        // Incidentes que serão filtrados
+        List<IncidenceDTO> incidenceDTOListNearUser= null;
 
-		if (user.getType() != UserType.CIDADAO) {
-			nearIncidenceDTOList = incidenceRepository
-					.findIncidencesNearUser(incidenceDTO.getLatitude(), incidenceDTO.getLongitude(), pageable).stream()
-					.map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
-		}
+        // Se for um usuário especial
+        if (user.getType() != UserType.CIDADAO) {
+            // Lista por categoria
+            if (category != null) {
+                incidenceDTOList = incidenceDTOList.stream()
+                        .filter(incidence -> incidence.getCategory() == category)
+                        .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+            } else {
+                // Lista todos
+                incidenceDTOList = incidenceDTOList.stream()
+                        .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+            }
+        } else {
+            // Se for um cidadão
+            if (category != null) {
+                // categorias permitidas para o cidadão
+                if (category == Category.ENCHENTE ||
+                        category == Category.ALAGAMENTO ||
+                        category == Category.DESLIZAMENTO
+                )
+                    incidenceDTOList = incidenceDTOList.stream()
+                            .filter(incidence -> incidence.getCategory() == category)
+                            .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+            } else {
+                // lista todas as categorias permitidas para o cidadão
+                incidenceDTOList = incidenceDTOList.stream()
+                        .filter(
+                                incidence -> incidence.getCategory() == Category.ENCHENTE ||
+                                        incidence.getCategory() == Category.ALAGAMENTO ||
+                                        incidence.getCategory() == Category.DESLIZAMENTO
+                        )
+                        .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+            }
+        }
 
-		return nearIncidenceDTOList;
+        // Lista para armazenar os incidentes perto do Usuário
+        // (defini que aparecerão as incidências num raio de 1000m do usuário)
+        incidenceDTOListNearUser = findIncidentsInRadius(user.getLastLatitude(),
+                user.getLastLongitude(), incidenceDTOList, 1000);
+
+        return incidenceDTOListNearUser;
 	}
 
-	// Função para calcular a distância entre dois pontos usando a fórmula de
-	// Haversine
-	public static double haversine(double userLat, double userLon, double incidentLat, double incidentLon) {
-		final int R = 6371; // Raio médio da Terra em quilômetros
-		double lat1 = Math.toRadians(userLat);
-		double lon1 = Math.toRadians(userLon);
-		double lat2 = Math.toRadians(incidentLat);
-		double lon2 = Math.toRadians(incidentLon);
+	// Função encontra incidentes num dado raio coordenadas
+    public static List<IncidenceDTO> findIncidentsInRadius(double userLatitude, double userLongitude, List<IncidenceDTO> incidenceDTOList, double radiusInMeters) {
+        List<IncidenceDTO> nearbyIncidencesDTO = new ArrayList<>();
 
-		double dLat = lat2 - lat1;
-		double dLon = lon2 - lon1;
+        final double EARTH_RADIUS = 6371000; // Raio da Terra em metros
 
-		double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-				+ Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        for (IncidenceDTO incidence : incidenceDTOList) {
+            double lat1 = Math.toRadians(userLatitude);
+            double lon1 = Math.toRadians(userLongitude);
+            double lat2 = Math.toRadians(incidence.getLatitude());
+            double lon2 = Math.toRadians(incidence.getLongitude());
 
-		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            // Calcula a diferença de latitude e longitude
+            double dLat = lat2 - lat1;
+            double dLon = lon2 - lon1;
 
-		return R * c * 1000; // Distância em metros
-	}
+            // Fórmula de Haversine para calcular a distância
+            double a = Math.pow(Math.sin(dLat / 2), 2) +
+                    Math.cos(lat1) * Math.cos(lat2) *
+                            Math.pow(Math.sin(dLon / 2), 2);
+            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            double distance = EARTH_RADIUS * c;
 
-	// Função encontra incidentes num dado raio
-	public static List<IncidenceDTO> findIncidentsInRadius(double userLatitude, double userLongitude,
-			List<IncidenceDTO> incidenceDTOList, double radiusInMeters) {
-		List<IncidenceDTO> nearbyIncidencesDTO = new ArrayList<>();
+            if (distance <= radiusInMeters) {
+                nearbyIncidencesDTO.add(incidence);
+            }
+        }
 
-		final double EARTH_RADIUS = 6371000; // Raio da Terra em metros
+        return nearbyIncidencesDTO;
+    }
 
-		for (IncidenceDTO incidence : incidenceDTOList) {
-			double lat1 = Math.toRadians(userLatitude);
-			double lon1 = Math.toRadians(userLongitude);
-			double lat2 = Math.toRadians(incidence.getLatitude());
-			double lon2 = Math.toRadians(incidence.getLongitude());
-
-			// Calcula a diferença de latitude e longitude
-			double dLat = lat2 - lat1;
-			double dLon = lon2 - lon1;
-
-			// Fórmula de Haversine para calcular a distância
-			double a = Math.pow(Math.sin(dLat / 2), 2)
-					+ Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(dLon / 2), 2);
-			double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-			double distance = EARTH_RADIUS * c;
-
-			if (distance <= radiusInMeters) {
-				nearbyIncidencesDTO.add(incidence);
-			}
-		}
-
-		return nearbyIncidencesDTO;
-	}
 
 	public byte[] getImageBytesById(Long id) {
 		try {
@@ -246,5 +323,11 @@ public class IncidenceService {
 			return null;
 		}
 	}
+
+	// Mensagens de Exceções personalizadas
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleCustomException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
 
 }

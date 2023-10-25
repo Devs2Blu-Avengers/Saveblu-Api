@@ -1,11 +1,12 @@
 package br.com.savebluapi.repositories;
 
 import br.com.savebluapi.models.Incidence;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 
 public interface IncidenceRepository extends JpaRepository<Incidence, Long> {
@@ -26,5 +27,8 @@ public interface IncidenceRepository extends JpaRepository<Incidence, Long> {
             """)
     List<Incidence> findIncidencesNearUser(Double latitude, Double longitude, Pageable pageable);
 
+    // RETORNA O MAIOR TICKT EXISTENTE
+    @Query("SELECT MAX(CAST(i.ticket AS Long)) FROM Incidence i")
+    public String findMaxTicket();
 
 }

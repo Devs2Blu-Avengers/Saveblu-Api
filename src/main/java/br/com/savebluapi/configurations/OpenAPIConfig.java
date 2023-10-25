@@ -18,15 +18,17 @@ public class OpenAPIConfig {
   @Value("http://localhost:8080")
   private String devUrl;
 
+  @Value("http://52.23.70.87:8080")
+  private String prodUrl;
   @Bean
   public OpenAPI myOpenAPI() {
     Server devServer = new Server();
     devServer.setUrl(devUrl);
-    devServer.setDescription("URL desenvolvimento");
+    devServer.setDescription("Servidor local de Desenvolvimento");
 
-    // Server prodServer = new Server();
-    // prodServer.setUrl(prodUrl);
-    // prodServer.setDescription("Server URL in Production environment");
+    Server prodServer = new Server();
+    prodServer.setUrl(prodUrl);
+    prodServer.setDescription("Servidor de Produção");
 
     // Contact contact = new Contact();
     // contact.setEmail("endereco@gmail.com");
@@ -43,6 +45,6 @@ public class OpenAPIConfig {
         // .termsOfService("#")
         // .license(mitLicense);
 
-    return new OpenAPI().info(info).servers(List.of(devServer));
+    return new OpenAPI().info(info).servers(List.of(devServer, prodServer));
   }
 }

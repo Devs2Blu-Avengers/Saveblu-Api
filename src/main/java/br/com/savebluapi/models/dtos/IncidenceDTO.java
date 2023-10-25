@@ -33,4 +33,6 @@ public class IncidenceDTO implements Serializable {
     private Boolean status;
 
     private Boolean valid;
+
+    private String ticket;
 }
