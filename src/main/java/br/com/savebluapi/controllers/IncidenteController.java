@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Incidência", description = "Endpoints relacionados a Incidência") // customizando UI do Swagger
 @Server(url = "http://localhost:8080", description = "Servidor local de desenvolvimento")
-@Server(url = "https://52.23.70.87:8080/", description = "Servidor de produção")
+@Server(url = "http://52.23.70.87:8080", description = "Servidor de produção")
 @RestController
 @RequestMapping(value = "/incidence")
 public class IncidenteController {
