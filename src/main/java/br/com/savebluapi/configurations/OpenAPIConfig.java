@@ -24,11 +24,11 @@ public class OpenAPIConfig {
   public OpenAPI myOpenAPI() {
     Server devServer = new Server();
     devServer.setUrl(devUrl);
-    devServer.setDescription("Servidor local de desenvolvimento");
+    devServer.setDescription("Servidor local de Desenvolvimento");
 
     Server prodServer = new Server();
     prodServer.setUrl(prodUrl);
-    prodServer.setDescription("Servidor de produção");
+    prodServer.setDescription("Servidor de Produção");
 
     // Contact contact = new Contact();
     // contact.setEmail("endereco@gmail.com");
