@@ -45,6 +45,6 @@ public class OpenAPIConfig {
         // .termsOfService("#")
         // .license(mitLicense);
 
-    return new OpenAPI().info(info).servers(List.of(devServer));
+    return new OpenAPI().info(info).servers(List.of(devServer, prodServer));
   }
 }
