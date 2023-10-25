@@ -146,10 +146,10 @@ public class UserService {
 		userRepository.delete(existingUser);
 	}
 
-	public void notifyDevices() {
+	public void notifyDevice() {
 		/**
-		 * TODO: notifica todos os dispositivos do usuário Esse método irá notificar os
-		 * dispositivos do usuário utilizando a api do Firebase
+		 * TODO: notifica o dispositivo do usuário
+		 * Esse método irá notificar o dispositivo utilizando a api do Firebase
 		 */
 	}
 
