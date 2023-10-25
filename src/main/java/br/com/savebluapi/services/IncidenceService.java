@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,15 @@ public class IncidenceService {
 
 	@Autowired
 	ModelMapper mapper;
+
+	public IncidenceDTO findById(Long incidenceID) throws Exception{
+		Optional<Incidence> optional = incidenceRepository.findById(incidenceID);
+		if (optional.isPresent()) {
+            return mapper.map(optional.get(), IncidenceDTO.class);
+        } else {
+            throw new Exception("Não encontrado");
+        }
+	}
 
 	public Incidence createIncidenceFromDTO(IncidenceDTO incidenceDTO, MultipartFile imageFile) throws Exception {
 	    byte[] imageBytes = imageFile.getBytes();
