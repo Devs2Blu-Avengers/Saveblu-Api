@@ -8,5 +8,5 @@ services:
     image: avengers:latest  # Name the image to align with the Dockerfile build name
     ports:
       - "8080:8080"
-    environment:
-      - DB_PASSWORD
+    env_file:
+      - .env
