@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import br.com.savebluapi.models.dtos.UserDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -108,8 +109,8 @@ public class IncidenceService {
         return nextTicket;
     }
 
-	public List<IncidenceDTO> getIncidencesByCategory(Category category, User user) throws Exception {
-		/**
+    public List<IncidenceDTO> getIncidencesByCategory(Integer[] categories, UserDTO user) throws Exception {
+        /**
          * TODO: retorna todos os incidentes de uma lista de categorias informadas
          *
          * A regra de negócio de quem poderá consumir esse endpoint não foi definida
@@ -126,26 +127,32 @@ public class IncidenceService {
          *  incidente: ObjectJson
          * }
          */
-		List<IncidenceDTO> incidenceDTOList = new ArrayList<>();
+        List<IncidenceDTO> incidenceDTOList = new ArrayList<>();
+        // Array de index de categorias
+        Category[] categoriesList = Category.values();
 
         if (user.getType() != UserType.CIDADAO) {
-            incidenceDTOList = incidenceRepository.findAll().stream().filter(incidence ->
-                            incidence.getCategory() == category).
-                    map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
-        } else {
-            if (category == Category.ALAGAMENTO || category == Category.DESLIZAMENTO || category == Category.ENCHENTE || category == Category.INCENDIO) {
+            for (Integer i: categories) {
                 incidenceDTOList = incidenceRepository.findAll().stream().filter(incidence ->
-                                incidence.getCategory() == category).
+                                incidence.getCategory() == categoriesList[i]).
                         map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+            }
+        } else {
+            for (Integer i: categories) {
+                if (categoriesList[i] == Category.RISCO_ELETRICO || categoriesList[i] == Category.DESLIZAMENTO || categoriesList[i] == Category.ENCHENTE || categoriesList[i] == Category.INCENDIO) {
+                    incidenceDTOList = incidenceRepository.findAll().stream().filter(incidence ->
+                                    incidence.getCategory() == categoriesList[i]).
+                            map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                }
             }
         }
 
         return incidenceDTOList;
-	}
+    }
 
-	public List<IncidenceDTO> getNearIncidentsByPositionRadius(User user, Category category, Double latitude,
-			Double longitude, Double radiusInMeters) {
-		/*
+    public List<IncidenceDTO> getNearIncidentsByPositionRadius(UserDTO user, Integer[] categories, Double latitude,
+                                                               Double longitude, Double radiusInMeters) {
+        /*
          * TODO: retornar uma lista de incidentes próximos a posição informada
          *
          * A regra de negócio que define quais incidentes são exibidos por tipo de usuário não foi definida
@@ -165,50 +172,57 @@ public class IncidenceService {
          * ]
          *
          */
+        // Array de index de categorias
+        Category[] categoriesList = Category.values();
 
-		// Carregar do banco as incidências
+        // Carregar do banco as incidências
         List<IncidenceDTO> incidenceDTOList = incidenceRepository.findAll().stream()
                 .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
         // Incidentes que serão filtrados
         List<IncidenceDTO> incidenceDTOListiInRadius= null;
 
-            // Se for um usuário especial
-            if (user != null && user.getType() != UserType.CIDADAO) {
-                // Lista por categoria
-                if (category != null) {
+        // Se for um usuário especial
+        if (user != null && user.getType() != UserType.CIDADAO) {
+            // Lista por categoria
+            if (categories != null) {
+                for (Integer i: categories) {
                     incidenceDTOList = incidenceDTOList.stream()
-                            .filter(incidence -> incidence.getCategory() == category)
-                            .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
-                } else {
-                    // Lista todos
-                    incidenceDTOList = incidenceDTOList.stream()
+                            .filter(incidence -> incidence.getCategory() == categoriesList[i])
                             .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
                 }
             } else {
-                // Se for um cidadão
-                if (category != null) {
+                // Lista todos
+                incidenceDTOList = incidenceDTOList.stream()
+                        .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+            }
+        } else {
+            // Se for um cidadão
+            if (categories != null) {
+                for (Integer i: categories) {
                     // categorias permitidas para o cidadão
-                    if (category == Category.ENCHENTE ||
-                            category == Category.ALAGAMENTO ||
-                            category == Category.DESLIZAMENTO
+                    if (categoriesList[i] == Category.ENCHENTE ||
+                            categoriesList[i] == Category.ALAGAMENTO ||
+                            categoriesList[i] == Category.DESLIZAMENTO
                     )
                         incidenceDTOList = incidenceDTOList.stream()
-                                .filter(incidence -> incidence.getCategory() == category)
+                                .filter(incidence -> incidence.getCategory() == categoriesList[i])
                                 .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
-                } else {
-                    // lista todas as categorias permitidas para o cidadão
-                    incidenceDTOList = incidenceDTOList.stream()
-                            .filter(
-                                    incidence -> incidence.getCategory() == Category.ENCHENTE ||
-                                            incidence.getCategory() == Category.ALAGAMENTO ||
-                                            incidence.getCategory() == Category.DESLIZAMENTO
-                            )
-                            .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
                 }
+            } else {
+                // lista todas as categorias permitidas para o cidadão
+                incidenceDTOList = incidenceDTOList.stream()
+                        .filter(
+                                incidence -> incidence.getCategory() == Category.ENCHENTE ||
+                                        incidence.getCategory() == Category.ALAGAMENTO ||
+                                        incidence.getCategory() == Category.DESLIZAMENTO ||
+                                        incidence.getCategory() == Category.INCENDIO
+                        )
+                        .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
             }
+        }
 
-            // Lista para armazenar os incidentes dentro do raio
-            incidenceDTOListiInRadius = findIncidentsInRadius(latitude, longitude, incidenceDTOList, radiusInMeters);
+        // Lista para armazenar os incidentes dentro do raio
+        incidenceDTOListiInRadius = findIncidentsInRadius(latitude, longitude, incidenceDTOList, radiusInMeters);
 
         for (IncidenceDTO incidenteDTO : incidenceDTOListiInRadius) {
             System.out.print(incidenteDTO.getLatitude().toString()+ ",");
@@ -218,7 +232,7 @@ public class IncidenceService {
         }
 
         return incidenceDTOListiInRadius;
-	}
+    }
 
 	public List<IncidenceDTO> getUserNearIncidents(User user, IncidenceDTO incidenceDTO, Category category) {
 		/*
