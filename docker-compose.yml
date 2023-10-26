@@ -5,12 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile  # Assuming the Dockerfile is in the same directory as docker-compose.yml
-    image: alhofrito:latest  # Name the image to align with the Dockerfile build name
+    image: avengers:latest  # Name the image to align with the Dockerfile build name
     ports:
       - "8080:8080"
     environment:
-      - DB_URL
-      - DB_USER
       - DB_PASSWORD
-      - DB_NAME
-      - AMBIENTE

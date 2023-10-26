@@ -7,6 +7,8 @@ WORKDIR /app
 # Copy the pom.xml file
 COPY pom.xml .
 
+
+
 # Download all required dependencies in advance (this will be cached until the pom.xml changes)
 RUN mvn dependency:go-offline -B
 
@@ -20,10 +22,10 @@ RUN mvn -U clean install package
 FROM openjdk:17-slim
 
 # Copy the built war file from the build stage
-COPY --from=build /app/target/saveblu-api-0.0.1.war saveblu-api-0.0.1.war
+COPY --from=build /app/target/saveblu-api-0.0.1.war saveblu-api-0.0.1.jar
 
 # Set the port the app listens on
 EXPOSE 8080
 
 # Command to run the application
-ENTRYPOINT ["java", "-jar", "saveblu-api-0.0.1.war"]
+ENTRYPOINT ["java", "-jar", "saveblu-api-0.0.1.jar"]
