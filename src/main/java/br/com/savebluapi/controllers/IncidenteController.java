@@ -43,9 +43,9 @@ public class IncidenteController {
                                                                                                               // UI do
                                                                                                               // Swagger
     @GetMapping(value = "/byposition")
-    public ResponseEntity<Object> getNearIncidentsByPositionRadius(@RequestBody @Nullable User user,
-            @RequestParam @Nullable Category category, @RequestParam(required = false) Double latitude,
-            @RequestParam(required = false) Double longitude, @RequestParam(required = false) Double radiusInMeters)
+    public ResponseEntity<Object> getNearIncidentsByPositionRadius(@RequestBody @Nullable UserDTO user,
+           @RequestParam @Nullable Integer[] categories, @RequestParam(required = false) Double latitude,
+           @RequestParam(required = false) Double longitude, @RequestParam(required = false) Double radiusInMeters)
             throws Exception {
         /*
          * TODO: retornar uma lista de incidentes próximos a posição informada
@@ -75,7 +75,7 @@ public class IncidenteController {
         }
 
         try {
-            return ResponseEntity.ok(incidenceService.getNearIncidentsByPositionRadius(user, category, latitude,
+            return ResponseEntity.ok(incidenceService.getNearIncidentsByPositionRadius(user, categories, latitude,
                     longitude, radiusInMeters));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -86,8 +86,8 @@ public class IncidenteController {
                                                                                                                   // UI
                                                                                                                   // do
                                                                                                                   // Swagger
-    @GetMapping(value = "/bycategory/{category}")
-    public ResponseEntity<Object> getIncidencesByCategory(@PathVariable Category category, @RequestBody User user)
+    @GetMapping(value = "/bycategory/{categories}")
+    public ResponseEntity<Object> getIncidencesByCategory(@PathVariable Integer[] categories, @RequestBody UserDTO user)
             throws Exception {
         /**
          * TODO: retorna todos os incidentes de uma lista de categorias informadas
@@ -107,7 +107,7 @@ public class IncidenteController {
          * }
          */
         try {
-            return ResponseEntity.ok(incidenceService.getIncidencesByCategory(category, user));
+            return ResponseEntity.ok(incidenceService.getIncidencesByCategory(categories, user));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
