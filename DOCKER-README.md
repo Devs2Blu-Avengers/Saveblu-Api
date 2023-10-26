@@ -20,7 +20,7 @@ ___
 
 ### Próximas execuções após o build
 
-Após realizar o build, é possivel utilizar o comando ```docker-compose up -d``` para iniciar o projeto. As variáveis de ambiente podem ser alteradas utilizando para isso o arquivo .env que pode ser criado localmente a partir de uma cápia do arquivo .env.example
+Após realizar o build, é possível utilizar o comando ```docker-compose up -d``` para iniciar o projeto. As variáveis de ambiente podem ser alteradas utilizando para isso o arquivo .env que pode ser criado localmente a partir de uma cópia do arquivo .env.example
 
 Utilize o comando ```docker-compose up -d && docker logs -f saveblu-api-server-1``` para rodar o container e ao mesmo tempo visualizar o log em tempo de execução.
 
