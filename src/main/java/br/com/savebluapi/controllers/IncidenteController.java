@@ -152,17 +152,9 @@ public class IncidenteController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
-    @Operation(description = "Retorna a imagem do incidência através do id", method = "GET")
-    @GetMapping("/image/{id}")
-    public ResponseEntity<byte[]> getImageById(@PathVariable Long id) {
-        byte[] imageBytes = incidenceService.getImageBytesById(id);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.IMAGE_PNG);
-        return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
-    }
-
+    @Operation(description = "Retorna a imagem através do id da incidência", method = "GET")
     @GetMapping("/{incidence_id}/image")
-    public ModelAndView showContent(@PathVariable Long incidence_id, Model model) throws Exception {
+    public ResponseEntity<byte[]> getImageById(@PathVariable Long incidence_id) throws Exception{
         IncidenceDTO incidenceDTO = new IncidenceDTO();
         try {
             incidenceDTO = incidenceService.findById(incidence_id);
@@ -174,16 +166,10 @@ public class IncidenteController {
             throw new Exception("Imagem inexistente");
         }
 
-        ArrayList<IncidenceDTO> content = new ArrayList<>();
-        model.addAttribute("post", content);
-
-
-        byte[] encodeBase64 = Base64.getEncoder().encode(incidenceDTO.getImage());
-        String base64Encoded = new String(encodeBase64, "UTF-8");
-        model.addAttribute("contentImage", base64Encoded );
-
-        ModelAndView modelAndView = new ModelAndView("view");
-        modelAndView.addObject("contentImage",base64Encoded );
-        return modelAndView;
+        byte[] imageBytes = incidenceDTO.getImage();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG);
+        return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
     }
+
 }
