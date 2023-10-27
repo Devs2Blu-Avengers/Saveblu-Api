@@ -1,37 +1,46 @@
 import sys
+import chardet
+
+
 
 def update_properties(url_secret, password_secret, app_url_secret):
-    filepath = 'src\\main\\resources\\application-dev.properties'
-    
-    mapping = {
-        "spring.datasource.url=": url_secret,
-        "spring.datasource.password=": password_secret,
-        "app.url=": app_url_secret
-    }
-    
-    try:
-        with open(filepath, 'r') as file:
-            content = file.readlines()
+    filepath = 'src/main/resources/application-dev.properties'
+    # Detect the file encoding
+    with open(filepath, 'rb') as f:
+        rawdata = f.read()
+        result = chardet.detect(rawdata)
+        char_encoding = result['encoding']
 
-        # Updating the content line-by-line
-        updated_content = []
-        for line in content:
-            for key, value in mapping.items():
-                if line.startswith(key):
-                    line = key + value + "\n"
-            updated_content.append(line)
+    with open(filepath, 'r', encoding=char_encoding) as file:
+        mapping = {
+            "spring.datasource.url=": url_secret,
+            "spring.datasource.password=": password_secret,
+            "app.url=": app_url_secret
+        }
         
-        # Writing updated content back to the file
-        with open(filepath, 'w') as file:
-            file.writelines(updated_content)
+        try:
+            with open(filepath, 'r') as file:
+                content = file.readlines()
 
-        print("Properties updated with the provided secrets.")
-    
-    except FileNotFoundError:
-        print(f"Error: The file '{filepath}' was not found.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+            # Updating the content line-by-line
+            updated_content = []
+            for line in content:
+                for key, value in mapping.items():
+                    if line.startswith(key):
+                        line = key + value + "\n"
+                updated_content.append(line)
+            
+            # Writing updated content back to the file
+            with open(filepath, 'w') as file:
+                file.writelines(updated_content)
 
+            print("Properties updated with the provided secrets.")
+        
+        except FileNotFoundError:
+            print(f"Error: The file '{filepath}' was not found.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        
 if __name__ == "__main__":
     if len(sys.argv) < 4:
         print("Usage: python script.py <url_secret> <password_secret> <app_url_secret>")

@@ -15,8 +15,10 @@ jobs:
 
     - name: Update application-dev.properties with secrets
       run: |
+        pip install chardet
         chmod +x ./script_name.py
         python3 ./script_name.py "${{ secrets.DB_URL }}" "${{ secrets.DB_PASSWORD }}" "${{ secrets.APP_URL }}"
+ 
 
     - name: Build and push the image
       run: |
@@ -29,9 +31,17 @@ jobs:
         echo "${{ secrets.AWS_SECRET_ACCESS_KEY }}" > /tmp/deploy_rsa
         chmod 600 /tmp/deploy_rsa
         ssh -o StrictHostKeyChecking=no -i /tmp/deploy_rsa ubuntu@52.23.70.87 << EOF
+        
+        cd /home/ubuntu
         echo "${{ secrets.TOKEN_PWD }}" | docker login  -u devs2blu-avengers --password-stdin ghcr.io
-        cd /home/ec2-user
-        sudo docker-compose down
+        # Stop containers that might be using port 8080
+        CONTAINER_ID=\$(sudo docker ps -q --filter "publish=8080")
+        if [ ! -z "\$CONTAINER_ID" ]; then
+          sudo docker stop \$CONTAINER_ID
+          sudo docker rm \$CONTAINER_ID
+        fi
+        
         sudo docker pull ghcr.io/devs2blu-avengers/savebluapi:latest
-        sudo docker-compose up -d --force-recreate
+        sudo docker run -d -p 8080:8080 ghcr.io/devs2blu-avengers/savebluapi:latest
         EOF
+      
