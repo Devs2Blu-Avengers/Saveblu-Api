@@ -127,27 +127,44 @@ public class IncidenceService {
          *  incidente: ObjectJson
          * }
          */
-        List<IncidenceDTO> incidenceDTOList = new ArrayList<>();
+        // Carregar do banco as incidências
+        List<IncidenceDTO> incidenceDTOList = incidenceRepository.findAll().stream()
+                .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+
+        // Lista concatenada de Incidências
+        List<IncidenceDTO> concatenatedList = new ArrayList<>();
+
+        // Lista temporária que será concatenada em concatenatedList
+        List<IncidenceDTO> tempList = incidenceDTOList;
+
         // Array de index de categorias
         Category[] categoriesList = Category.values();
 
         if (user.getType() != UserType.CIDADAO) {
             for (Integer i: categories) {
-                incidenceDTOList = incidenceRepository.findAll().stream().filter(incidence ->
-                                incidence.getCategory() == categoriesList[i]).
-                        map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                concatenatedList.addAll(tempList.stream().filter(incidence ->
+                                incidence.getCategory() == categoriesList[i])
+                                .toList());
+
+                tempList = incidenceDTOList;
             }
         } else {
             for (Integer i: categories) {
-                if (categoriesList[i] == Category.RISCO_ELETRICO || categoriesList[i] == Category.DESLIZAMENTO || categoriesList[i] == Category.ENCHENTE || categoriesList[i] == Category.INCENDIO) {
-                    incidenceDTOList = incidenceRepository.findAll().stream().filter(incidence ->
-                                    incidence.getCategory() == categoriesList[i]).
-                            map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                if (categoriesList[i] == Category.INCENDIO ||
+                        categoriesList[i] == Category.ENCHENTE ||
+                        categoriesList[i] == Category.ALAGAMENTO ||
+                        categoriesList[i] == Category.RISCO_ELETRICO ||
+                        categoriesList[i] == Category.DESLIZAMENTO
+                ) {
+                    concatenatedList.addAll(tempList.stream().filter(incidence ->
+                                    incidence.getCategory() == categoriesList[i])
+                                    .toList());
+                    tempList = incidenceDTOList;
                 }
             }
         }
 
-        return incidenceDTOList;
+        return concatenatedList;
     }
 
     public List<IncidenceDTO> getNearIncidentsByPositionRadius(UserDTO user, Integer[] categories, Double latitude,
@@ -172,57 +189,68 @@ public class IncidenceService {
          * ]
          *
          */
-        // Array de index de categorias
-        Category[] categoriesList = Category.values();
-
         // Carregar do banco as incidências
         List<IncidenceDTO> incidenceDTOList = incidenceRepository.findAll().stream()
                 .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
-        // Incidentes que serão filtrados
-        List<IncidenceDTO> incidenceDTOListiInRadius= null;
+
+        // Lista concatenada de Incidências
+        List<IncidenceDTO> incidenceDTOListiInRadius = null;
+
+        // Lista temporária que será concatenada em concatenatedList
+        List<IncidenceDTO> tempList = incidenceDTOList;
+
+        // Lista concatenada de Incidências
+        List<IncidenceDTO> concatenatedList = new ArrayList<>();
+
+        // Array de index de categorias
+        Category[] categoriesList = Category.values();
 
         // Se for um usuário especial
         if (user != null && user.getType() != UserType.CIDADAO) {
             // Lista por categoria
             if (categories != null) {
                 for (Integer i: categories) {
-                    incidenceDTOList = incidenceDTOList.stream()
+                    concatenatedList.addAll(tempList.stream()
                             .filter(incidence -> incidence.getCategory() == categoriesList[i])
-                            .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                            .toList());
+                    tempList = incidenceDTOList;
                 }
             } else {
                 // Lista todos
-                incidenceDTOList = incidenceDTOList.stream()
-                        .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                concatenatedList = incidenceDTOList;
             }
         } else {
             // Se for um cidadão
-            if (categories != null) {
+            if (categories != null ) {
                 for (Integer i: categories) {
                     // categorias permitidas para o cidadão
-                    if (categoriesList[i] == Category.ENCHENTE ||
+                    if (categoriesList[i] == Category.INCENDIO ||
+                            categoriesList[i] == Category.ENCHENTE ||
                             categoriesList[i] == Category.ALAGAMENTO ||
+                            categoriesList[i] == Category.RISCO_ELETRICO ||
                             categoriesList[i] == Category.DESLIZAMENTO
                     )
-                        incidenceDTOList = incidenceDTOList.stream()
+                        concatenatedList.addAll(tempList.stream()
                                 .filter(incidence -> incidence.getCategory() == categoriesList[i])
-                                .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                                .toList());
+                    tempList = incidenceDTOList;
                 }
             } else {
                 // lista todas as categorias permitidas para o cidadão
-                incidenceDTOList = incidenceDTOList.stream()
+                concatenatedList = tempList.stream()
                         .filter(
-                                incidence -> incidence.getCategory() == Category.ENCHENTE ||
+                                incidence -> incidence.getCategory() == Category.INCENDIO ||
+                                        incidence.getCategory() == Category.ENCHENTE ||
                                         incidence.getCategory() == Category.ALAGAMENTO ||
-                                        incidence.getCategory() == Category.DESLIZAMENTO ||
-                                        incidence.getCategory() == Category.INCENDIO
+                                        incidence.getCategory() == Category.RISCO_ELETRICO ||
+                                        incidence.getCategory() == Category.DESLIZAMENTO
                         )
-                        .map(incidence -> mapper.map(incidence, IncidenceDTO.class)).toList();
+                        .toList();
             }
         }
 
         // Lista para armazenar os incidentes dentro do raio
-        incidenceDTOListiInRadius = findIncidentsInRadius(latitude, longitude, incidenceDTOList, radiusInMeters);
+        incidenceDTOListiInRadius = findIncidentsInRadius(latitude, longitude, concatenatedList, radiusInMeters);
 
         for (IncidenceDTO incidenteDTO : incidenceDTOListiInRadius) {
             System.out.print(incidenteDTO.getLatitude().toString()+ ",");
