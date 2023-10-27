@@ -33,7 +33,7 @@ jobs:
         ssh -o StrictHostKeyChecking=no -i /tmp/deploy_rsa ubuntu@52.23.70.87 << EOF
         
         cd /home/ubuntu
-        echo "${{ secrets.TOKEN_PWD }}" | docker login  -u devs2blu-avengers --password-stdin ghcr.io
+        echo "${{ secrets.TOKEN_PWD }}" | sudo docker login  -u devs2blu-avengers --password-stdin ghcr.io
         # Stop containers that might be using port 8080
         CONTAINER_ID=\$(sudo docker ps -q --filter "publish=8080")
         if [ ! -z "\$CONTAINER_ID" ]; then
