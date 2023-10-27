@@ -1,0 +1,37 @@
+name: Docker CI
+
+on:
+  push:
+    branches:
+    - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Update application-dev.properties with secrets
+      run: |
+        chmod +x ./script_name.py
+        python3 ./script_name.py "${{ secrets.DB_URL }}" "${{ secrets.DB_PASSWORD }}" "${{ secrets.APP_URL }}"
+
+    - name: Build and push the image
+      run: |
+        echo "${{ secrets.TOKEN_PWD }}" | docker login  -u devs2blu-avengers --password-stdin ghcr.io
+        docker build -t ghcr.io/devs2blu-avengers/savebluapi:latest .
+        docker push ghcr.io/devs2blu-avengers/savebluapi:latest
+
+    - name: Deploy to AWS EC2
+      run: |
+        echo "${{ secrets.AWS_SECRET_ACCESS_KEY }}" > /tmp/deploy_rsa
+        chmod 600 /tmp/deploy_rsa
+        ssh -o StrictHostKeyChecking=no -i /tmp/deploy_rsa ubuntu@52.23.70.87 << EOF
+        echo "${{ secrets.TOKEN_PWD }}" | docker login  -u devs2blu-avengers --password-stdin ghcr.io
+        cd /home/ec2-user
+        sudo docker-compose down
+        sudo docker pull ghcr.io/devs2blu-avengers/savebluapi:latest
+        sudo docker-compose up -d --force-recreate
+        EOF
