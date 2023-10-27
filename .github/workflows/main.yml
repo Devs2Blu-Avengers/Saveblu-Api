@@ -3,7 +3,7 @@ name: Docker CI
 on:
   push:
     branches:
-    - develop
+    - dev
 
 jobs:
   build:
