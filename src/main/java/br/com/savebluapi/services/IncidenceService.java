@@ -365,6 +365,21 @@ public class IncidenceService {
         return nearbyIncidencesDTO;
     }
 
+    public long updateIncidence(IncidenceDTO incidenceDTO) throws Exception {
+        try {
+            return incidenceRepository.save(mapper.map(incidenceDTO, Incidence.class)).getId();
+        } catch (Exception e) {
+            throw new Exception("Erro ao conectar ao banco de dados");
+        }
+    }
+
+    public void deleteIncidence(Long incidenceId) throws Exception {
+        try {
+            incidenceRepository.deleteById(incidenceId);
+        } catch (Exception e) {
+            throw new Exception("Erro ao conectar ao banco de dados");
+        }
+    }
 
 	public byte[] getImageBytesById(Long id) {
 		try {

@@ -5,21 +5,14 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Optional;
 
+import br.com.savebluapi.models.Incidence;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -144,6 +137,38 @@ public class IncidenteController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @Operation(description = "Atualiza uma incidência", method = "PUT")
+    @PutMapping("/update")
+    public ResponseEntity<Object> updateIncidence(@RequestBody IncidenceDTO incidenceDTO) throws Exception {
+        // Verificando se a Incidência existe
+        if (incidenceService.findById(incidenceDTO.getId()) == null) {
+            throw new Exception("Incidência não encontrada");
+        }
+
+        try {
+            return ResponseEntity.ok(incidenceService.updateIncidence(incidenceDTO));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @Operation(description = "Exclui uma incidência", method = "DELETE")
+    @DeleteMapping("/delete/{incidenceId}")
+    public ResponseEntity<Object> deleteIncidence(@PathVariable Long incidenceId) throws Exception {
+        // Verificando se a Incidência existe
+        if (incidenceService.findById(incidenceId) == null) {
+            throw new Exception("Incidência não encontrada");
+        }
+
+        try {
+            incidenceService.deleteIncidence(incidenceId);
+            return ResponseEntity.ok(incidenceId);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
     }
 
     // Mensagens de Exceções personalizadas
